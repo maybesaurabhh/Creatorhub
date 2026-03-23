@@ -6,19 +6,21 @@ const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const SESSION_KEY = "ch_supabase_session";
 
 const CATEGORIES = [
-  { id: "video", label: "Video Packs", icon: "🎬", color: "#ff6b35" },
-  { id: "study", label: "Study Materials", icon: "📚", color: "#4ecdc4" },
+  { id: "video", label: "Video", icon: "🎬", color: "#ff6b35" },
+  { id: "study", label: "Study", icon: "📚", color: "#4ecdc4" },
   { id: "productivity", label: "Productivity", icon: "⚡", color: "#ffe66d" },
-  { id: "reels", label: "Reel Packs", icon: "🎞️", color: "#a8edea" },
+  { id: "reels", label: "Reels", icon: "🎞️", color: "#a8edea" },
 ];
 
 // ─── API HELPERS ─────────────────────────────────────────────────────────────
 const db = {
   async getAll() {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/resources?select=*&order=created_at.desc`, {
-      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }
-    });
-    return r.ok ? r.json() : [];
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/resources?select=*&order=created_at.desc`, {
+        headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }
+      });
+      return r.ok ? r.json() : [];
+    } catch { return []; }
   },
   async upsert(data, token, id = null) {
     const method = id ? "PATCH" : "POST";
@@ -38,255 +40,299 @@ const db = {
 };
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
-const GlobalStyle = ({ dark }) => (
+const GlobalStyle = ({ dark, accent }) => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
     
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     
     :root {
-      --bg: ${dark ? "#0a0a0f" : "#f4f3ee"};
-      --text: ${dark ? "#f0ede8" : "#1a1814"};
-      --muted: ${dark ? "#7a7a8a" : "#7a7670"};
-      --accent: #ff6b35;
-      --border: ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"};
-      --surface: ${dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.72)"};
-      --surface2: ${dark ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.9)"};
+      --bg: ${dark ? "#050505" : "#fdfdfd"};
+      --text: ${dark ? "#ffffff" : "#0a0a0a"};
+      --muted: ${dark ? "#808080" : "#606060"};
+      --accent: ${accent || "#ff6b35"};
+      --border: ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"};
+      --glass: ${dark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.7)"};
     }
 
     body { 
       background: var(--bg); 
       color: var(--text); 
       font-family: 'DM Sans', sans-serif; 
-      transition: background 0.4s;
+      transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-x: hidden;
     }
 
-    .glass { background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 14px; }
+    /* Artistic Mesh Background */
+    .mesh-bg {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+      background: radial-gradient(circle at 20% 30%, ${accent}15 0%, transparent 40%),
+                  radial-gradient(circle at 80% 70%, #4ecdc415 0%, transparent 40%);
+      filter: blur(80px);
+      animation: drift 20s infinite alternate;
+    }
+
+    @keyframes drift {
+      from { transform: scale(1); }
+      to { transform: scale(1.1) rotate(5deg); }
+    }
+
+    .glass { 
+      background: var(--glass); 
+      backdrop-filter: blur(24px); 
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border); 
+      border-radius: 24px; 
+    }
     
     .gradient-text {
-      background: linear-gradient(135deg, #ff6b35, #ffd200);
+      background: linear-gradient(135deg, var(--accent) 0%, #ffd200 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Spring Animations */
+    @keyframes springUp {
+      0% { opacity: 0; transform: translateY(50px) scale(0.9); }
+      70% { transform: translateY(-5px) scale(1.02); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    .fade-up { animation: fadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
+    .spring-up { animation: springUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
-    .lift { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
-    .lift:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,107,53,0.15); }
-
-    .btn-primary { 
-      background: linear-gradient(135deg, #ff6b35, #ff4500); 
-      color: #fff; border: none; padding: 12px 28px; 
-      border-radius: 10px; font-family: 'Syne', sans-serif; 
-      font-weight: 800; cursor: pointer; transition: 0.2s;
+    .card-art {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
     }
-    .btn-primary:hover { transform: scale(1.05); }
-
-    .search-input {
-      width: 100%; max-width: 500px; padding: 14px 20px;
-      border-radius: 12px; border: 1px solid var(--border);
-      background: var(--surface2); color: var(--text);
-      outline: none; transition: 0.2s;
+    .card-art:hover {
+      transform: translateY(-12px) scale(1.02);
+      border-color: var(--accent);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.3);
     }
-    .search-input:focus { border-color: var(--accent); }
 
-    .filter-pill {
-      padding: 8px 18px; border-radius: 25px; border: 1px solid var(--border);
-      background: var(--surface); cursor: pointer; font-size: 0.85rem;
-      font-weight: 600; transition: 0.2s; color: var(--text);
+    .btn-art {
+      background: var(--accent);
+      color: #fff; border: none; padding: 18px 36px;
+      border-radius: 18px; font-family: 'Syne', sans-serif;
+      font-weight: 800; cursor: pointer; transition: 0.4s;
+      text-transform: uppercase; letter-spacing: 2px;
+      box-shadow: 0 10px 30px ${accent}40;
     }
-    .filter-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-art:hover { transform: translateY(-3px); box-shadow: 0 20px 40px ${accent}60; }
+
+    .search-art {
+      width: 100%; padding: 20px 30px; border-radius: 20px;
+      border: 1px solid var(--border); background: var(--glass);
+      color: var(--text); font-size: 1.1rem; outline: none; transition: 0.4s;
+      font-family: 'Syne', sans-serif;
+    }
+    .search-art:focus { border-color: var(--accent); background: ${dark ? "rgba(255,255,255,0.06)" : "#fff"}; }
+
+    .pill-art {
+      padding: 12px 24px; border-radius: 40px; background: var(--glass);
+      border: 1px solid var(--border); color: var(--text); font-weight: 700;
+      font-family: 'Syne', sans-serif; cursor: pointer; transition: 0.4s;
+    }
+    .pill-art.active { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-3px); }
+
+    .grid-art {
+      display: grid; gap: 30px; width: 100%;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
   `}</style>
 );
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 export default function App() {
   const [dark, setDark] = useState(true);
+  const [accent, setAccent] = useState("#ff6b35");
   const [page, setPage] = useState("home");
   const [resources, setResources] = useState([]);
   const [search, setSearch] = useState("");
-  const [catFilter, setCatFilter] = useState("all");
-  const [detailRes, setDetailRes] = useState(null);
+  const [activeCat, setActiveCat] = useState("all");
+  const [detailItem, setDetailItem] = useState(null);
   const [session, setSession] = useState(() => JSON.parse(localStorage.getItem(SESSION_KEY)));
 
-  const refresh = async () => { setResources(await db.getAll()); };
-  useEffect(() => { refresh(); }, []);
+  const clickRef = useRef(0);
+  const timerRef = useRef(null);
+
+  const fetchAll = async () => { setResources(await db.getAll()); };
+  useEffect(() => { fetchAll(); }, []);
+
+  const handleSecretAccess = () => {
+    clickRef.current += 1;
+    if (clickRef.current >= 5) {
+      setPage("admin");
+      clickRef.current = 0;
+    }
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => { clickRef.current = 0; }, 1200);
+  };
 
   const filtered = useMemo(() => {
     return resources.filter(r => {
-      const matchSearch = r.title.toLowerCase().includes(search.toLowerCase());
-      const matchCat = catFilter === "all" || r.category === catFilter;
-      return matchSearch && matchCat;
+      const matchText = r.title.toLowerCase().includes(search.toLowerCase());
+      const matchCat = activeCat === "all" || r.category === activeCat;
+      return matchText && matchCat;
     });
-  }, [resources, search, catFilter]);
+  }, [resources, search, activeCat]);
 
   return (
     <>
-      <GlobalStyle dark={dark} />
+      <GlobalStyle dark={dark} accent={accent} />
+      <div className="mesh-bg" />
       
-      {/* Navigation */}
-      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000, padding: "18px 24px", background: "var(--bg)", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div onClick={() => setPage("home")} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.2rem" }}>
+      {/* Navbar */}
+      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 2000, padding: "20px 6%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div onClick={handleSecretAccess} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.05em" }}>
           Creator<span className="gradient-text">Hub</span>
         </div>
-        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", fontWeight: 700, fontFamily: "Syne", fontSize: "0.9rem" }}>BROWSE</button>
-          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem" }}>{dark ? "☀️" : "🌙"}</button>
+        <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, fontSize: "0.8rem", letterSpacing: "2px", cursor: "pointer", fontFamily: "Syne" }}>LIBRARY</button>
+          <div onClick={() => setAccent(accent === "#ff6b35" ? "#a855f7" : "#ff6b35")} style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--accent)", cursor: "pointer" }} />
+          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer" }}>{dark ? "🌚" : "🌞"}</button>
         </div>
       </nav>
 
-      <div style={{ paddingTop: 100 }}>
+      <div style={{ paddingTop: "120px" }}>
         
-        {/* HOME PAGE */}
+        {/* HERO */}
         {page === "home" && (
-          <div style={{ maxWidth: 1200, margin: "0 auto", textAlign: "center", padding: "80px 20px" }}>
-            <div className="fade-up glass" style={{ display: "inline-block", padding: "6px 16px", borderRadius: 30, fontSize: "0.8rem", fontWeight: 700, marginBottom: 20 }}>
-              🚀 1,200+ Resources for FREE
-            </div>
-            <h1 className="fade-up delay-1" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", fontFamily: "Syne", fontWeight: 800, lineHeight: 1.1, marginBottom: 20 }}>
-              The Ultimate Hub for <br/><span className="gradient-text">Creators & Students</span>
+          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "12vh 24px", textAlign: "center" }}>
+            <h1 className="spring-up" style={{ fontSize: "clamp(3rem, 10vw, 6.5rem)", fontFamily: "Syne", fontWeight: 800, lineHeight: 0.85, marginBottom: "40px", letterSpacing: "-0.06em" }}>
+              Crafted for <br/><span className="gradient-text">The Bold</span>
             </h1>
-            <p className="fade-up delay-2" style={{ color: "var(--muted)", maxWidth: 600, margin: "0 auto 40px", fontSize: "1.1rem" }}>
-              High-quality video packs, study materials, and productivity templates delivered instantly via Supabase.
+            <p className="spring-up" style={{ animationDelay: "0.15s", color: "var(--muted)", maxWidth: "550px", margin: "0 auto 50px", fontSize: "1.2rem", fontWeight: 500 }}>
+              An artistic repository for creators. Premium video packs, curated study notes, and the future of workflow.
             </p>
-            <button className="fade-up delay-2 btn-primary" onClick={() => setPage("browse")}>EXPLORE RESOURCES</button>
-          </div>
+            <button className="spring-up btn-art" style={{ animationDelay: "0.3s" }} onClick={() => setPage("browse")}>ENTER THE HUB</button>
+          </main>
         )}
 
-        {/* BROWSE PAGE */}
+        {/* BROWSE */}
         {page === "browse" && (
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px" }}>
-            <div style={{ textAlign: "center", marginBottom: 50 }}>
-              <h2 style={{ fontFamily: "Syne", fontSize: "2.5rem", marginBottom: 20 }}>Browse Library</h2>
+          <main style={{ maxWidth: "1300px", margin: "0 auto", padding: "20px 24px" }}>
+            <div className="spring-up" style={{ textAlign: "center", marginBottom: "60px" }}>
+              <h2 style={{ fontFamily: "Syne", fontSize: "3.5rem", marginBottom: "30px", letterSpacing: "-0.04em" }}>Explore</h2>
               <input 
-                className="search-input" 
-                placeholder="Search packs, templates, tags..." 
+                className="search-art" 
+                placeholder="Find your next spark..." 
                 onChange={e => setSearch(e.target.value)}
               />
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 25 }}>
-                <button className={`filter-pill ${catFilter === 'all' ? 'active' : ''}`} onClick={() => setCatFilter("all")}>All</button>
+              <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", justifyContent: "center", marginTop: "30px" }}>
+                <button className={`pill-art ${activeCat === 'all' ? 'active' : ''}`} onClick={() => setActiveCat("all")}>Everything</button>
                 {CATEGORIES.map(c => (
-                  <button key={c.id} className={`filter-pill ${catFilter === c.id ? 'active' : ''}`} onClick={() => setCatFilter(c.id)}>
+                  <button key={c.id} className={`pill-art ${activeCat === c.id ? 'active' : ''}`} onClick={() => setActiveCat(c.id)}>
                     {c.icon} {c.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="grid-3">
+            <div className="grid-art">
               {filtered.map((r, i) => (
-                <div key={r.id} className="glass lift fade-up" style={{ animationDelay: `${i * 0.05}s`, overflow: "hidden" }} onClick={() => { setDetailRes(r); setPage("detail"); }}>
-                  <div style={{ height: 160, background: `linear-gradient(45deg, ${CATEGORIES.find(c => c.id === r.category)?.color}33, transparent)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>
+                <div key={r.id} className="glass card-art spring-up" style={{ animationDelay: `${i * 0.1}s`, overflow: "hidden" }} onClick={() => { setDetailItem(r); setPage("detail"); }}>
+                  <div style={{ height: "200px", background: `linear-gradient(180deg, ${CATEGORIES.find(c => c.id === r.category)?.color}10, transparent)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4.5rem" }}>
                     {CATEGORIES.find(c => c.id === r.category)?.icon}
                   </div>
-                  <div style={{ padding: 20 }}>
-                    <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", marginBottom: 5 }}>{r.category}</div>
-                    <h3 style={{ fontSize: "1.1rem", fontFamily: "Syne" }}>{r.title}</h3>
-                    <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                       <span style={{ fontSize: "0.8rem", color: "#38ef7d", fontWeight: 700 }}>{r.price}</span>
-                       <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>⬇️ {r.downloads || 0}</span>
+                  <div style={{ padding: "30px" }}>
+                    <p style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>{r.category}</p>
+                    <h3 style={{ fontSize: "1.3rem", fontFamily: "Syne", fontWeight: 800 }}>{r.title}</h3>
+                    <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                       <span style={{ fontSize: "1rem", color: "#38ef7d", fontWeight: 800 }}>{r.price}</span>
+                       <span style={{ fontSize: "0.8rem", opacity: 0.4 }}>{r.downloads || 0} units</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </main>
         )}
 
-        {/* DETAIL PAGE */}
-        {page === "detail" && detailRes && (
-          <div className="fade-up" style={{ maxWidth: 800, margin: "0 auto", padding: 40 }}>
-            <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 800, marginBottom: 30 }}>← BACK TO LIBRARY</button>
-            <div className="glass" style={{ padding: 40 }}>
-               <h1 style={{ fontFamily: "Syne", fontSize: "2.5rem", marginBottom: 15 }}>{detailRes.title}</h1>
-               <p style={{ color: "var(--muted)", lineHeight: 1.8, fontSize: "1.1rem", marginBottom: 30 }}>{detailRes.description}</p>
-               <a href={detailRes.download_link} className="btn-primary" style={{ textDecoration: "none", display: "inline-block" }}>DOWNLOAD NOW</a>
+        {/* DETAIL */}
+        {page === "detail" && detailItem && (
+          <main className="spring-up" style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 24px" }}>
+            <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 800, marginBottom: "40px", fontFamily: "Syne", letterSpacing: "2px" }}>← BACK TO GALLERY</button>
+            <div className="glass" style={{ padding: "60px" }}>
+               <h1 style={{ fontFamily: "Syne", fontSize: "clamp(2.5rem, 6vw, 4rem)", marginBottom: "30px", fontWeight: 800, lineHeight: 0.9 }}>{detailItem.title}</h1>
+               <p style={{ color: "var(--muted)", lineHeight: 1.8, fontSize: "1.3rem", marginBottom: "50px" }}>{detailItem.description}</p>
+               <a href={detailItem.download_link} target="_blank" rel="noreferrer" className="btn-art" style={{ textDecoration: "none", display: "block", textAlign: "center" }}>COLLECT ASSET</a>
             </div>
-          </div>
+          </main>
         )}
 
-        {/* ADMIN PAGE */}
+        {/* ADMIN */}
         {page === "admin" && (
-          <div style={{ maxWidth: 1000, margin: "0 auto", padding: 24 }}>
+          <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}>
             {!session ? (
-              <AdminLogin onLogin={(s) => { setSession(s); localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }} />
+              <AdminAuth accent={accent} onLogin={(s) => { setSession(s); localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }} />
             ) : (
-              <AdminPanel resources={resources} token={session.access_token} onUpdate={refresh} onLogout={() => { setSession(null); localStorage.removeItem(SESSION_KEY); }} />
+              <AdminDashboard resources={resources} token={session.access_token} onUpdate={fetchAll} onLogout={() => { setSession(null); localStorage.removeItem(SESSION_KEY); setPage("home"); }} />
             )}
-          </div>
+          </main>
         )}
       </div>
 
-      <footer style={{ marginTop: 100, padding: 60, textAlign: "center", borderTop: "1px solid var(--border)" }}>
-        <p style={{ opacity: 0.4, fontSize: "0.9rem" }}>© 2026 CreatorHub — All Assets Provided Free</p>
-        <button onClick={() => setPage("admin")} style={{ opacity: 0, cursor: "default" }}>admin</button>
+      <footer style={{ marginTop: "100px", padding: "100px 24px", textAlign: "center", background: "var(--glass)" }}>
+        <h2 style={{ fontFamily: "Syne", fontSize: "1.5rem", fontWeight: 800, marginBottom: "15px" }}>CreatorHub</h2>
+        <p style={{ opacity: 0.3, fontSize: "0.9rem", letterSpacing: "1px" }}>EST. 2026 • BUILT FOR INFINITY</p>
       </footer>
     </>
   );
 }
 
-// ─── ADMIN HELPERS ───────────────────────────────────────────────────────────
-function AdminLogin({ onLogin }) {
+// ─── ADMIN SUBSYSTEMS ────────────────────────────────────────────────────────
+function AdminAuth({ onLogin, accent }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
-  const handle = async () => {
+  const handleAuth = async () => {
     const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method: "POST", headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
       body: JSON.stringify({ email, password: pass })
     });
     const d = await r.json();
-    if (r.ok) onLogin(d); else alert("Invalid Credentials");
+    if (r.ok) onLogin(d); else alert("Invalid Signature");
   };
   return (
-    <div className="glass" style={{ maxWidth: 400, margin: "0 auto", padding: 40, textAlign: "center" }}>
-      <h3 style={{ fontFamily: "Syne", marginBottom: 20 }}>Admin Secure Access</h3>
-      <input placeholder="Email" className="search-input" style={{ marginBottom: 15 }} onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" className="search-input" style={{ marginBottom: 20 }} onChange={e => setPass(e.target.value)} />
-      <button className="btn-primary" style={{ width: "100%" }} onClick={handle}>SIGN IN</button>
+    <div className="glass spring-up" style={{ maxWidth: "450px", margin: "0 auto", padding: "50px", textAlign: "center" }}>
+      <h3 style={{ fontFamily: "Syne", fontSize: "1.5rem", marginBottom: "40px" }}>Vault Access</h3>
+      <input placeholder="Admin ID" className="search-art" style={{ marginBottom: "15px" }} onChange={e => setEmail(e.target.value)} />
+      <input type="password" placeholder="Key" className="search-art" style={{ marginBottom: "30px" }} onChange={e => setPass(e.target.value)} />
+      <button className="btn-art" style={{ width: "100%" }} onClick={handleAuth}>UNLOCK</button>
     </div>
   );
 }
 
-function AdminPanel({ resources, token, onUpdate, onLogout }) {
-  const [form, setForm] = useState({ title: "", description: "", category: "video", download_link: "", price: "Free" });
+function AdminDashboard({ resources, token, onUpdate, onLogout }) {
+  const [f, setF] = useState({ title: "", description: "", category: "video", download_link: "", price: "Free" });
   const [editId, setEditId] = useState(null);
 
-  const save = async () => {
-    await db.upsert(form, token, editId);
-    setForm({ title: "", description: "", category: "video", download_link: "", price: "Free" });
+  const saveItem = async () => {
+    await db.upsert(f, token, editId);
+    setF({ title: "", description: "", category: "video", download_link: "", price: "Free" });
     setEditId(null);
     onUpdate();
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 30 }}>
-      <div className="glass" style={{ padding: 25 }}>
-        <h3 style={{ fontFamily: "Syne", marginBottom: 20 }}>{editId ? "Update" : "Add"} Resource</h3>
-        <input placeholder="Title" value={form.title} className="search-input" style={{ marginBottom: 10 }} onChange={e => setForm({...form, title: e.target.value})} />
-        <textarea placeholder="Description" value={form.description} className="search-input" style={{ height: 100, marginBottom: 10 }} onChange={e => setForm({...form, description: e.target.value})} />
-        <input placeholder="Download URL" value={form.download_link} className="search-input" style={{ marginBottom: 10 }} onChange={e => setForm({...form, download_link: e.target.value})} />
-        <select className="search-input" value={form.category} style={{ marginBottom: 20 }} onChange={e => setForm({...form, category: e.target.value})}>
-           {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-        </select>
-        <button className="btn-primary" style={{ width: "100%" }} onClick={save}>{editId ? "UPDATE" : "PUBLISH"}</button>
-        <button onClick={onLogout} style={{ marginTop: 20, background: "none", border: "none", color: "red", cursor: "pointer", fontWeight: 700 }}>LOGOUT</button>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "40px" }}>
+      <div className="glass" style={{ padding: "40px" }}>
+        <h3 style={{ fontFamily: "Syne", marginBottom: "30px" }}>{editId ? "Modify" : "Mint"} Asset</h3>
+        <input placeholder="Title" value={f.title} className="search-art" style={{ marginBottom: "15px" }} onChange={e => setF({...f, title: e.target.value})} />
+        <textarea placeholder="Description" value={f.description} className="search-art" style={{ height: "150px", marginBottom: "15px", resize: "none" }} onChange={e => setF({...f, description: e.target.value})} />
+        <input placeholder="Source Link" value={f.download_link} className="search-art" style={{ marginBottom: "20px" }} onChange={e => setF({...f, download_link: e.target.value})} />
+        <button className="btn-art" style={{ width: "100%" }} onClick={saveItem}>{editId ? "UPDATE" : "PUBLISH"}</button>
+        <button onClick={onLogout} style={{ marginTop: "30px", opacity: 0.5, background: "none", border: "none", color: "var(--text)", cursor: "pointer", fontWeight: 800 }}>LOGOUT</button>
       </div>
-      <div>
-        <h3 style={{ fontFamily: "Syne", marginBottom: 20 }}>Manage Resources</h3>
+      
+      <div className="glass" style={{ padding: "40px" }}>
+        <h3 style={{ fontFamily: "Syne", marginBottom: "30px" }}>Live Inventory</h3>
         {resources.map(r => (
-          <div key={r.id} className="glass" style={{ padding: "15px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontWeight: 600 }}>{r.title}</span>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => { setForm(r); setEditId(r.id); }} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer" }}>Edit</button>
-              <button onClick={async () => { if(confirm("Delete?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ background: "none", border: "none", color: "red", cursor: "pointer" }}>Del</button>
+          <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "20px 0", borderBottom: "1px solid var(--border)" }}>
+            <span style={{ fontWeight: 800, fontSize: "1.1rem" }}>{r.title}</span>
+            <div style={{ display: "flex", gap: "20px" }}>
+              <button onClick={() => { setF(r); setEditId(r.id); }} style={{ color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>EDIT</button>
+              <button onClick={async () => { if(confirm("Destroy?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: "red", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>DEL</button>
             </div>
           </div>
         ))}
