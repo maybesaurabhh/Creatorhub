@@ -325,64 +325,60 @@ const GlobalStyle = ({ dark }) => (
       color: #fff;
     }
 
-    /* ── RESPONSIVE BREAKPOINTS ──────────────────────────────────
-       xs:  0–480px      phones (portrait)
-       sm:  481–768px    phones (landscape) + small tablets
-       md:  769–1024px   tablets (iPad etc)
-       lg:  1025px+      desktop
-    ────────────────────────────────────────────────────────── */
+    /* ── RESPONSIVE BREAKPOINTS ────────────────────────────────
+       xs:  0–480px   phones portrait
+       sm:  481–768px phones landscape / small tablets
+       md:  769–1024px tablets
+       lg:  1025px+   desktop
+    ──────────────────────────────────────────────────────── */
 
-    /* Desktop default — already set by component inline styles */
-
-    /* ── Tablet (769–1024px) ── */
+    /* ── Large tablet / small laptop (769–1024px) ── */
     @media (max-width: 1024px) {
-      .grid-3  { grid-template-columns: repeat(2, 1fr) !important; }
-      .grid-4  { grid-template-columns: repeat(2, 1fr) !important; }
+      .hero-title  { font-size: 2.4rem !important; line-height: 1.15 !important; }
+      .grid-3      { grid-template-columns: repeat(2, 1fr) !important; }
+      .grid-4      { grid-template-columns: repeat(2, 1fr) !important; }
       .detail-grid { grid-template-columns: 1fr !important; }
       .admin-grid  { grid-template-columns: 1fr !important; }
-      .hero-title  { font-size: 3rem !important; }
       .admin-form-sticky { position: static !important; }
+      .browse-head { font-size: 1.8rem !important; }
     }
 
-    /* ── Small tablet / large phone landscape (481–768px) ── */
+    /* ── Small tablet / phone landscape (481–768px) ── */
     @media (max-width: 768px) {
-      .hero-title  { font-size: 2.2rem !important; }
+      .hero-title  { font-size: 2rem !important; line-height: 1.2 !important; }
       .grid-3      { grid-template-columns: repeat(2, 1fr) !important; }
       .grid-4      { grid-template-columns: repeat(2, 1fr) !important; }
       .hide-mobile { display: none !important; }
-      .nav-links   { gap: 6px !important; }
-      .nav-btn-label { display: none !important; }
-      .hero-stats  { gap: 20px !important; }
-      .section-pad { padding: 0 16px 60px !important; }
-      .detail-sidebar { margin-top: 0 !important; }
-      .footer-inner { flex-direction: column !important; gap: 28px !important; }
-      .footer-links { gap: 24px !important; }
-      .tg-section   { padding: 28px 20px !important; }
+      .hero-stats  { gap: 16px !important; }
+      .browse-head { font-size: 1.6rem !important; }
+      .tg-section  { padding: 28px 20px !important; }
+      .detail-grid { grid-template-columns: 1fr !important; }
+      .admin-grid  { grid-template-columns: 1fr !important; }
+      .admin-form-sticky { position: static !important; }
     }
 
     /* ── Phone portrait (0–480px) ── */
     @media (max-width: 480px) {
-      .hero-title  { font-size: 1.75rem !important; line-height: 1.15 !important; }
+      .hero-title  { font-size: 1.55rem !important; line-height: 1.18 !important; }
       .grid-3      { grid-template-columns: 1fr !important; }
       .grid-4      { grid-template-columns: 1fr 1fr !important; }
-      .hero-badge  { font-size: 0.68rem !important; padding: 5px 12px !important; }
+      .cat-grid    { grid-template-columns: 1fr 1fr !important; }
       .hero-btns   { flex-direction: column !important; width: 100% !important; }
       .hero-btns a,
-      .hero-btns button { width: 100% !important; text-align: center !important; }
-      .hero-stats  { gap: 16px !important; flex-wrap: wrap !important; justify-content: center !important; }
-      .browse-head { font-size: 1.6rem !important; }
-      .filter-row  { justify-content: flex-start !important; overflow-x: auto !important; flex-wrap: nowrap !important; padding-bottom: 6px !important; }
+      .hero-btns button { width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
+      .hero-stats  { gap: 12px !important; flex-wrap: wrap !important; justify-content: center !important; }
+      .browse-head { font-size: 1.4rem !important; }
+      .filter-row  { overflow-x: auto !important; flex-wrap: nowrap !important; justify-content: flex-start !important; padding-bottom: 6px !important; }
+      .sort-row    { overflow-x: auto !important; flex-wrap: nowrap !important; justify-content: flex-start !important; padding-bottom: 4px !important; }
       .filter-pill { flex-shrink: 0 !important; }
-      .sort-row    { justify-content: flex-start !important; overflow-x: auto !important; flex-wrap: nowrap !important; padding-bottom: 4px !important; }
-      .admin-grid  { grid-template-columns: 1fr !important; }
       .detail-grid { grid-template-columns: 1fr !important; }
-      .section-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
-      .cat-grid    { grid-template-columns: 1fr 1fr !important; }
-      .nav-telegram { display: none !important; }
+      .admin-grid  { grid-template-columns: 1fr !important; }
       .admin-form-sticky { position: static !important; }
+      .section-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+      .tg-section  { padding: 24px 16px !important; }
     }
 
-    /* ── Scrollbar hidden on mobile ── */
+    /* ── Hide scrollbars on filter/sort rows ── */
     @media (max-width: 768px) {
       .filter-row::-webkit-scrollbar,
       .sort-row::-webkit-scrollbar { display: none; }
@@ -505,395 +501,47 @@ function Navbar({ dark, toggleDark, page, setPage }) {
               menuOpen ? "rotate(45deg) translate(4px,4px)"  : "none",
               null,
               menuOpen ? "rotate(-45deg) translate(4px,-4px)" : "none",
-            ].map((transform, i) => transform === null
-      id: 4, title: "Aesthetic Notion Dashboard", category: "productivity",
-    description: "Minimal Notion workspace template with linked databases, kanban boards, and daily journal blocks.",
-    tags: ["Notion", "Dashboard", "Workspace"], price: "Free",
-    trending: false, premium: false, isNew: true,
-    downloadLink: "#download-4",
-    thumbnail: null, downloads: 15300,
-  },
-  {
-    id: 5, title: "Viral Anime Edit Pack", category: "reels",
-    description: "60+ pre-cut anime clips with beat-sync markers, speed ramps, and overlay effects ready to drop in.",
-    tags: ["Anime", "Edits", "Viral"], price: "Premium",
-    trending: true, premium: true, isNew: false,
-    downloadLink: "#download-5",
-    thumbnail: null, downloads: 31200,
-  },
-  {
-    id: 6, title: "Physics Notes – Class 12", category: "study",
-    description: "Complete handwritten-style PDF notes for Class 12 Physics. Covers all NCERT chapters with solved examples.",
-    tags: ["Physics", "Notes", "PDF"], price: "Free",
-    trending: false, premium: false, isNew: true,
-    downloadLink: "#download-6",
-    thumbnail: null, downloads: 9800,
-  },
-  {
-    id: 7, title: "Morning Routine System", category: "productivity",
-    description: "Notion + PDF habit system for designing your perfect morning. Includes 30-day challenge tracker.",
-    tags: ["Habits", "Routine", "PDF"], price: "Free",
-    trending: false, premium: false, isNew: false,
-    downloadLink: "#download-7",
-    thumbnail: null, downloads: 7200,
-  },
-  {
-    id: 8, title: "Cinematic B-Roll Pack", category: "reels",
-    description: "200+ 4K b-roll clips – urban, nature, travel & lifestyle. Royalty-free, drag-and-drop ready.",
-    tags: ["B-Roll", "4K", "Royalty Free"], price: "Premium",
-    trending: true, premium: true, isNew: true,
-    downloadLink: "#download-8",
-    thumbnail: null, downloads: 18600,
-  },
-  {
-    id: 9, title: "Overlay & VHS Pack", category: "video",
-    description: "80 retro VHS, grain, and light-leak overlays. Perfect for aesthetic reels and YouTube vlogs.",
-    tags: ["Overlays", "VHS", "Retro"], price: "Free",
-    trending: false, premium: false, isNew: false,
-    downloadLink: "#download-9",
-    thumbnail: null, downloads: 5400,
-  },
-];
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-const formatNum = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n;
-
-function slugify(str) {
-  return str.toLowerCase().replace(/\s+/g, "-");
-}
-
-// ─── THUMBNAIL PLACEHOLDER ───────────────────────────────────────────────────
-function Thumb({ resource, size = "full" }) {
-  const catColor = CATEGORIES.find((c) => c.id === resource.category)?.color || "#ff6b35";
-  const catIcon  = CATEGORIES.find((c) => c.id === resource.category)?.icon  || "📦";
-  return (
-    <div style={{
-      width: "100%", paddingBottom: size === "full" ? "56.25%" : "60%",
-      position: "relative", borderRadius: "12px", overflow: "hidden",
-      background: `linear-gradient(135deg, ${catColor}22 0%, ${catColor}08 100%)`,
-      border: `1px solid ${catColor}33`,
-    }}>
-      <div style={{
-        position: "absolute", inset: 0, display: "flex",
-        alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px",
-      }}>
-        <span style={{ fontSize: size === "full" ? "3.5rem" : "2.5rem" }}>{catIcon}</span>
-        <span style={{
-          fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.12em",
-          color: catColor, textTransform: "uppercase", opacity: 0.8,
-        }}>
-          {resource.category}
-        </span>
+            ].map((transform, i) => transform === null ? (
+              <span key={i} style={{
+                display: "block", width: 15, height: 2,
+                background: "var(--text)", borderRadius: 2,
+                opacity: menuOpen ? 0 : 1, transition: "all 0.25s",
+              }}/>
+            ) : (
+              <span key={i} style={{
+                display: "block", width: 15, height: 2,
+                background: "var(--text)", borderRadius: 2,
+                transform, transition: "all 0.25s",
+              }}/>
+            ))}
+          </button>
+        </div>
       </div>
-      {resource.premium && (
-        <span style={{
-          position: "absolute", top: "10px", right: "10px",
-          background: "linear-gradient(135deg,#f7971e,#ffd200)",
-          color: "#000", fontSize: "0.6rem", fontWeight: 800,
-          padding: "3px 8px", borderRadius: "20px", letterSpacing: "0.1em",
-        }}>PREMIUM</span>
-      )}
-      {resource.isNew && !resource.premium && (
-        <span style={{
-          position: "absolute", top: "10px", right: "10px",
-          background: "linear-gradient(135deg,#11998e,#38ef7d)",
-          color: "#000", fontSize: "0.6rem", fontWeight: 800,
-          padding: "3px 8px", borderRadius: "20px", letterSpacing: "0.1em",
-        }}>NEW</span>
-      )}
-    </div>
-  );
-}
 
-// ─── GLOBAL CSS ──────────────────────────────────────────────────────────────
-const GlobalStyle = ({ dark }) => (
-  <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    :root {
-      --bg:       ${dark ? "#0a0a0f" : "#f4f3ee"};
-      --bg2:      ${dark ? "#111118" : "#ede8df"};
-      --bg3:      ${dark ? "#18181f" : "#e5dfd3"};
-      --surface:  ${dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.72)"};
-      --surface2: ${dark ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.9)"};
-      --border:   ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"};
-      --text:     ${dark ? "#f0ede8" : "#1a1814"};
-      --muted:    ${dark ? "#7a7a8a" : "#7a7670"};
-      --accent:   #ff6b35;
-      --accent2:  #4ecdc4;
-      --gold:     #ffd200;
-      --radius:   14px;
-      --shadow:   ${dark ? "0 4px 30px rgba(0,0,0,0.5)" : "0 4px 30px rgba(0,0,0,0.1)"};
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      line-height: 1.6;
-      transition: background 0.4s, color 0.4s;
-      overflow-x: hidden;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
-
-    /* Glass card */
-    .glass {
-      background: var(--surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-    }
-
-    /* Hover lift */
-    .lift {
-      transition: transform 0.25s cubic-bezier(.25,.46,.45,.94), box-shadow 0.25s;
-    }
-    .lift:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(255,107,53,0.18);
-    }
-
-    /* Fade-in animation */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .fade-up { animation: fadeUp 0.55s cubic-bezier(.25,.46,.45,.94) both; }
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
-    .delay-3 { animation-delay: 0.3s; }
-    .delay-4 { animation-delay: 0.4s; }
-
-    @keyframes pulse-glow {
-      0%,100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.4); }
-      50%      { box-shadow: 0 0 20px 6px rgba(255,107,53,0.15); }
-    }
-
-    /* Gradient text */
-    .gradient-text {
-      background: linear-gradient(135deg, #ff6b35, #ffd200);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* Buttons */
-    .btn-primary {
-      background: linear-gradient(135deg, #ff6b35, #ff4500);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 0.875rem;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: all 0.25s;
-      text-transform: uppercase;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(255,107,53,0.4);
-    }
-    .btn-secondary {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-family: 'Syne', sans-serif;
-      font-weight: 600;
-      font-size: 0.875rem;
-      letter-spacing: 0.03em;
-      cursor: pointer;
-      transition: all 0.25s;
-    }
-    .btn-secondary:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    /* Download btn */
-    .btn-download {
-      background: linear-gradient(135deg,#11998e,#38ef7d);
-      color: #000;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 20px;
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 0.8rem;
-      letter-spacing: 0.06em;
-      cursor: pointer;
-      transition: all 0.25s;
-      text-transform: uppercase;
-      display: flex; align-items: center; gap: 6px;
-      animation: pulse-glow 2.5s infinite;
-    }
-    .btn-download:hover {
-      transform: scale(1.04);
-      box-shadow: 0 8px 24px rgba(56,239,125,0.35);
-    }
-
-    /* Tag chips */
-    .tag {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 3px 10px;
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-    }
-
-    /* Nav */
-    nav a { text-decoration: none; color: var(--text); }
-
-    /* Search */
-    .search-input {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 16px 10px 40px;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-      width: 100%;
-    }
-    .search-input:focus { border-color: var(--accent); }
-    .search-input::placeholder { color: var(--muted); }
-
-    /* Filter pill */
-    .filter-pill {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 7px 16px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      font-family: 'Syne', sans-serif;
-      color: var(--text);
-    }
-    .filter-pill.active, .filter-pill:hover {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-      .hero-title { font-size: 2.2rem !important; }
-      .grid-3 { grid-template-columns: 1fr !important; }
-      .grid-4 { grid-template-columns: 1fr 1fr !important; }
-      .hide-mobile { display: none !important; }
-      .nav-links { gap: 12px !important; }
-    }
-    @media (max-width: 480px) {
-      .grid-4 { grid-template-columns: 1fr !important; }
-      .hero-title { font-size: 1.8rem !important; }
-    }
-  `}</style>
-);
-
-// ─── NAVBAR ──────────────────────────────────────────────────────────────────
-function Navbar({ dark, toggleDark, page, setPage, searchVal, setSearchVal }) {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const clickCount = useRef(0);
-  const clickTimer  = useRef(null);
-
-  // Secret: click logo 5× fast to reach admin
-  const handleLogoClick = () => {
-    clickCount.current += 1;
-    clearTimeout(clickTimer.current);
-    if (clickCount.current >= 5) {
-      clickCount.current = 0;
-      setPage("admin");
-    } else {
-      setPage("home");
-      clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 1200);
-    }
-  };
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-  return (
-    <nav style={{
-      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      padding: "0 24px",
-      background: scrolled
-        ? (dark ? "rgba(10,10,15,0.9)" : "rgba(244,243,238,0.9)")
-        : "transparent",
-      backdropFilter: scrolled ? "blur(24px)" : "none",
-      borderBottom: scrolled ? `1px solid var(--border)` : "none",
-      transition: "all 0.3s",
-    }}>
+      {/* ── Mobile dropdown ── */}
       <div style={{
-        maxWidth: 1200, margin: "0 auto",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: 64,
+        maxHeight: menuOpen ? "280px" : "0",
+        overflow: "hidden",
+        transition: "max-height 0.35s cubic-bezier(.25,.46,.45,.94)",
+        borderTop: menuOpen ? "1px solid var(--border)" : "none",
       }}>
-        {/* Logo */}
-        <button onClick={handleLogoClick} style={{
-          background: "none", border: "none", cursor: "pointer",
-          display: "flex", alignItems: "center", gap: 8,
-        }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: "10px",
-            background: "linear-gradient(135deg,#ff6b35,#ffd200)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "1rem", fontWeight: 900, color: "#000",
-          }}>C</div>
-          <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.02em" }}>
-            Creator<span className="gradient-text">Hub</span>
-          </span>
-        </button>
-
-        {/* Nav links */}
-        <div className="nav-links" style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          {[["home","Home"],["browse","Browse"]].map(([p,label]) => (
+        <div style={{ padding: "10px 16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+          {[["home","🏠  Home"],["browse","🔍  Browse Resources"]].map(([p,label]) => (
             <button key={p} onClick={() => setPage(p)} style={{
-              background: page === p ? "var(--surface2)" : "none",
-              border: page === p ? "1px solid var(--border)" : "1px solid transparent",
-              borderRadius: 8, padding: "6px 14px",
-              fontFamily: "'Syne',sans-serif", fontWeight: 600,
-              fontSize: "0.82rem", cursor: "pointer",
-              color: page === p ? "var(--accent)" : "var(--text)",
-              transition: "all 0.2s",
+              background: page === p ? "rgba(255,107,53,0.08)" : "var(--surface2)",
+              border: `1px solid ${page === p ? "rgba(255,107,53,0.3)" : "var(--border)"}`,
+              borderRadius: 10, padding: "12px 16px", textAlign: "left",
+              fontFamily: "'Syne',sans-serif", fontWeight: 600, fontSize: "0.9rem",
+              cursor: "pointer", color: page === p ? "var(--accent)" : "var(--text)",
             }}>{label}</button>
           ))}
-          <a href="#telegram" style={{
-            background: "linear-gradient(135deg,#0088cc,#00b4e6)",
-            color: "#fff", border: "none", borderRadius: 8,
-            padding: "6px 14px",
-            fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: "0.8rem",
-            cursor: "pointer", textDecoration: "none", letterSpacing: "0.04em",
-          }}>📲 Telegram</a>
-          <button onClick={toggleDark} style={{
-            background: "var(--surface2)", border: "1px solid var(--border)",
-            borderRadius: 8, width: 36, height: 36,
-            cursor: "pointer", fontSize: "1rem", transition: "all 0.2s",
-          }}>{dark ? "☀️" : "🌙"}</button>
+          <a href="#telegram" onClick={() => setMenuOpen(false)} style={{
+            background: "linear-gradient(135deg,rgba(0,136,204,0.12),rgba(0,180,230,0.06))",
+            border: "1px solid rgba(0,136,204,0.25)",
+            borderRadius: 10, padding: "12px 16px",
+            fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: "0.9rem",
+            textDecoration: "none", color: "#00b4e6", display: "block",
+          }}>📲  Join Telegram</a>
         </div>
       </div>
     </nav>
@@ -906,7 +554,7 @@ function Hero({ setPage }) {
     <section style={{
       minHeight: "100vh", display: "flex", alignItems: "center",
       justifyContent: "center", flexDirection: "column", textAlign: "center",
-      padding: "100px 24px 60px", position: "relative", overflow: "hidden",
+      padding: "80px 20px 50px", position: "relative", overflow: "hidden", width: "100%",
     }}>
       {/* BG orbs */}
       <div style={{
@@ -936,7 +584,7 @@ function Hero({ setPage }) {
 
       <h1 className="fade-up delay-1 hero-title" style={{
         fontFamily: "'Syne',sans-serif", fontWeight: 800,
-        fontSize: "clamp(2.2rem,5.5vw,4.2rem)",
+        fontSize: "clamp(1.6rem,3.8vw,3.2rem)",
         lineHeight: 1.1, letterSpacing: "-0.03em",
         maxWidth: 820, marginBottom: 20,
       }}>
@@ -945,14 +593,14 @@ function Hero({ setPage }) {
       </h1>
 
       <p className="fade-up delay-2" style={{
-        fontSize: "1.05rem", color: "var(--muted)", maxWidth: 560,
+        fontSize: "clamp(0.88rem,1.5vw,1.05rem)", color: "var(--muted)", maxWidth: 560,
         lineHeight: 1.7, marginBottom: 36,
       }}>
         Video packs, study notes, Notion templates, anime edits & more —
         all curated, all free (or premium), zero fluff.
       </p>
 
-      <div className="fade-up delay-3" style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+      <div className="fade-up delay-3 hero-btns" style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
         <button className="btn-primary" onClick={() => setPage("browse")} style={{ padding: "14px 30px", fontSize: "0.95rem" }}>
           🚀 Browse Packs
         </button>
@@ -963,11 +611,11 @@ function Hero({ setPage }) {
 
       {/* Stats row */}
       <div className="fade-up delay-4" style={{
-        display: "flex", gap: 32, marginTop: 60, flexWrap: "wrap", justifyContent: "center",
+        display: "flex", gap: 32, marginTop: 60, flexWrap: "wrap", justifyContent: "center", className: "hero-stats",
       }}>
         {[["120k+","Downloads"],["1.2k+","Resources"],["12","Categories"],["Free","Always"]].map(([v,l]) => (
           <div key={l} style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "1.6rem" }}
+            <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "clamp(1.1rem,2.5vw,1.6rem)" }}
               className="gradient-text">{v}</div>
             <div style={{ color: "var(--muted)", fontSize: "0.78rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>{l}</div>
           </div>
@@ -1032,7 +680,7 @@ function SectionHeader({ title, sub, action, onAction }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 24 }}>
       <div>
-        <h2 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "1.5rem", letterSpacing: "-0.02em" }}>
+        <h2 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "clamp(1.2rem,2.5vw,1.5rem)", letterSpacing: "-0.02em" }}>
           {title}
         </h2>
         {sub && <p style={{ color: "var(--muted)", fontSize: "0.85rem", marginTop: 4 }}>{sub}</p>}
@@ -1064,7 +712,7 @@ function HomePage({ resources, setPage, setDetailResource }) {
       {/* Categories */}
       <section style={{ marginBottom: 64 }}>
         <SectionHeader title="Browse Categories" sub="Everything you need, organized." />
-        <div className="grid-4" style={{
+        <div className="grid-4 cat-grid" style={{
           display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16,
         }}>
           {CATEGORIES.map((cat) => {
@@ -1075,7 +723,7 @@ function HomePage({ resources, setPage, setDetailResource }) {
                 borderLeft: `3px solid ${cat.color}`,
               }}>
                 <div style={{ fontSize: "1.8rem", marginBottom: 10 }}>{cat.icon}</div>
-                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: "0.95rem", marginBottom: 4 }}>
+                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: "clamp(0.8rem,1.5vw,0.95rem)", marginBottom: 4 }}>
                   {cat.label}
                 </div>
                 <div style={{ color: "var(--muted)", fontSize: "0.75rem" }}>{count} resources</div>
@@ -1102,7 +750,7 @@ function HomePage({ resources, setPage, setDetailResource }) {
       </section>
 
       {/* Telegram CTA */}
-      <section id="telegram" className="glass" style={{
+      <section id="telegram" className="glass tg-section" style={{
         background: "linear-gradient(135deg,rgba(0,136,204,0.12),rgba(0,180,230,0.06))",
         border: "1px solid rgba(0,136,204,0.2)",
         borderRadius: 20, padding: "40px 40px", textAlign: "center",
@@ -1164,7 +812,7 @@ function BrowsePage({ resources, setPage, setDetailResource }) {
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px 80px" }}>
       <div style={{ marginBottom: 32, textAlign: "center" }}>
-        <h1 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "2.2rem", letterSpacing: "-0.03em", marginBottom: 8 }}>
+        <h1 className="browse-head" style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "2.2rem", letterSpacing: "-0.03em", marginBottom: 8 }}>
           Browse All Resources
         </h1>
         <p style={{ color: "var(--muted)" }}>Find exactly what you need from {resources.length}+ curated packs</p>
@@ -1182,7 +830,7 @@ function BrowsePage({ resources, setPage, setDetailResource }) {
       </div>
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: 16 }}>
+      <div className="filter-row" style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: 16 }}>
         <button className={`filter-pill${catFilter==="all"?" active":""}`} onClick={() => setCat("all")}>All</button>
         {CATEGORIES.map((c) => (
           <button key={c.id} className={`filter-pill${catFilter===c.id?" active":""}`}
@@ -1191,7 +839,7 @@ function BrowsePage({ resources, setPage, setDetailResource }) {
       </div>
 
       {/* Sort */}
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 36 }}>
+      <div className="sort-row" style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 36 }}>
         {[["trending","🔥 Trending"],["new","✨ Newest"],["free","🎁 Free First"]].map(([v,l]) => (
           <button key={v} onClick={() => setSort(v)} style={{
             background: sortBy===v ? "var(--accent)" : "var(--surface2)",
@@ -1233,7 +881,7 @@ function DetailPage({ resource, resources, setPage, setDetailResource }) {
         transition: "all 0.2s",
       }}>← Back to Browse</button>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 32 }}>
+      <div className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 32 }}>
         {/* Left */}
         <div>
           <Thumb resource={resource} size="full" />
@@ -1555,6 +1203,42 @@ function AdminGate({ children }) {
   );
 }
 
+// ─── ADMIN FIELD (must be outside AdminPage to avoid focus loss) ──────────────
+function AdminField({ label, field, type = "text", options, form, setForm }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      {label ? (
+        <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)",
+          textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</label>
+      ) : null}
+      {options ? (
+        <select value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+          style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)",
+            borderRadius: 8, padding: "9px 12px", color: "var(--text)",
+            fontFamily: "'DM Sans',sans-serif", fontSize: "0.9rem", outline: "none" }}>
+          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      ) : type === "textarea" ? (
+        <textarea value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+          rows={3} style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)",
+            borderRadius: 8, padding: "9px 12px", color: "var(--text)",
+            fontFamily: "'DM Sans',sans-serif", fontSize: "0.9rem", outline: "none", resize: "vertical" }} />
+      ) : type === "checkbox" ? (
+        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <input type="checkbox" checked={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.checked })}
+            style={{ width: 16, height: 16, accentColor: "var(--accent)" }} />
+          <span style={{ fontSize: "0.85rem" }}>Yes</span>
+        </label>
+      ) : (
+        <input type={type} value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+          style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)",
+            borderRadius: 8, padding: "9px 12px", color: "var(--text)",
+            fontFamily: "'DM Sans',sans-serif", fontSize: "0.9rem", outline: "none" }} />
+      )}
+    </div>
+  );
+}
+
 // ─── ADMIN PAGE ───────────────────────────────────────────────────────────────
 function AdminPage({ resources, setResources, logout, user }) {
   const empty = { id: Date.now(), title: "", category: "video", description: "", tags: "",
@@ -1595,36 +1279,7 @@ function AdminPage({ resources, setResources, logout, user }) {
     window.scrollTo(0, 0);
   };
 
-  const F = ({ label, field, type = "text", options }) => (
-    <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)",
-        textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</label>
-      {options ? (
-        <select value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-          style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)",
-            borderRadius: 8, padding: "9px 12px", color: "var(--text)",
-            fontFamily: "'DM Sans',sans-serif", fontSize: "0.9rem", outline: "none" }}>
-          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      ) : type === "textarea" ? (
-        <textarea value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-          rows={3} style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)",
-            borderRadius: 8, padding: "9px 12px", color: "var(--text)",
-            fontFamily: "'DM Sans',sans-serif", fontSize: "0.9rem", outline: "none", resize: "vertical" }} />
-      ) : type === "checkbox" ? (
-        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-          <input type="checkbox" checked={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.checked })}
-            style={{ width: 16, height: 16, accentColor: "var(--accent)" }} />
-          <span style={{ fontSize: "0.85rem" }}>Yes</span>
-        </label>
-      ) : (
-        <input type={type} value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-          style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)",
-            borderRadius: 8, padding: "9px 12px", color: "var(--text)",
-            fontFamily: "'DM Sans',sans-serif", fontSize: "0.9rem", outline: "none" }} />
-      )}
-    </div>
-  );
+
 
   return (
     <main style={{ maxWidth: 1100, margin: "0 auto", padding: "100px 24px 80px" }}>
@@ -1661,30 +1316,30 @@ function AdminPage({ resources, setResources, logout, user }) {
       </div>
       <p style={{ color: "var(--muted)", marginBottom: 36 }}>Add, edit, or remove resources from CreatorHub</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 32 }}>
+      <div className="admin-grid" style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 32 }}>
         {/* Form */}
-        <div className="glass" style={{ padding: 24, height: "fit-content", position: "sticky", top: 84 }}>
+        <div className="glass" className="admin-form-sticky" style={{ padding: 24, height: "fit-content", position: "sticky", top: 84 }}>
           <h2 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: "1rem", marginBottom: 20 }}>
             {editing ? "✏️ Edit Resource" : "➕ Add Resource"}
           </h2>
-          <F label="Title" field="title" />
-          <F label="Category" field="category" options={CATEGORIES.map(c => ({ value: c.id, label: `${c.icon} ${c.label}` }))} />
-          <F label="Description" field="description" type="textarea" />
-          <F label="Tags (comma-separated)" field="tags" />
-          <F label="Price" field="price" options={[{value:"Free",label:"Free"},{value:"Premium",label:"Premium"}]} />
-          <F label="Download Link" field="downloadLink" />
+          <AdminField label="Title" field="title" form={form} setForm={setForm} />
+          <AdminField label="Category" field="category" options={CATEGORIES.map(cat => ({ value: cat.id, label: `${cat.icon} ${cat.label}` }))} form={form} setForm={setForm} />
+          <AdminField label="Description" field="description" type="textarea" form={form} setForm={setForm} />
+          <AdminField label="Tags (comma-separated)" field="tags" form={form} setForm={setForm} />
+          <AdminField label="Price" field="price" options={[{value:"Free",label:"Free"},{value:"Premium",label:"Premium"}]} form={form} setForm={setForm} />
+          <AdminField label="Download Link" field="downloadLink" form={form} setForm={setForm} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
             <div>
               <label style={{ fontSize:"0.7rem",fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:6}}>Trending</label>
-              <F label="" field="trending" type="checkbox" />
+              <AdminField label="" field="trending" type="checkbox" form={form} setForm={setForm} />
             </div>
             <div>
               <label style={{ fontSize:"0.7rem",fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:6}}>Premium</label>
-              <F label="" field="premium" type="checkbox" />
+              <AdminField label="" field="premium" type="checkbox" form={form} setForm={setForm} />
             </div>
             <div>
               <label style={{ fontSize:"0.7rem",fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:6}}>New</label>
-              <F label="" field="isNew" type="checkbox" />
+              <AdminField label="" field="isNew" type="checkbox" form={form} setForm={setForm} />
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
