@@ -12,7 +12,7 @@ const CATEGORIES = [
   { id: "reels", label: "Reels", icon: "🎞️", color: "#a8edea" },
 ];
 
-// ─── API ENGINE (BULLETPROOF) ────────────────────────────────────────────────
+// ─── API ENGINE (FIXED SAVE LOGIC) ───────────────────────────────────────────
 const db = {
   async getAll() {
     try {
@@ -25,10 +25,21 @@ const db = {
   async upsert(data, token, id = null) {
     const method = id ? "PATCH" : "POST";
     const url = id ? `${SUPABASE_URL}/rest/v1/resources?id=eq.${id}` : `${SUPABASE_URL}/rest/v1/resources`;
+    
+    // FIX: Only send the exact columns we want to update. 
+    // Sending the 'id' or 'created_at' causes Supabase to reject the save.
+    const payload = {
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      download_link: data.download_link,
+      price: data.price || "Free"
+    };
+
     const r = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     });
     return r.ok;
   },
@@ -40,7 +51,7 @@ const db = {
   }
 };
 
-// ─── STYLES (INSANE TIER + MOBILE SAFE) ──────────────────────────────────────
+// ─── STYLES (PREMIUM UI RESTORED) ────────────────────────────────────────────
 const GlobalStyle = ({ dark, accent }) => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
@@ -48,63 +59,50 @@ const GlobalStyle = ({ dark, accent }) => (
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     
     :root {
-      --bg: ${dark ? "#030305" : "#fdfdfd"};
-      --text: ${dark ? "#ffffff" : "#0a0a0a"};
-      --muted: ${dark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"};
+      --bg: ${dark ? "#07070a" : "#f4f3ee"};
+      --text: ${dark ? "#ffffff" : "#121212"};
+      --muted: ${dark ? "#888899" : "#666666"};
       --accent: ${accent || "#ff6b35"};
       --border: ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"};
-      --glass: ${dark ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.7)"};
-      --glass-hover: ${dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.9)"};
+      --glass: ${dark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.8)"};
+      --surface: ${dark ? "#121218" : "#ffffff"};
     }
 
-    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; transition: background 0.6s ease; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; transition: background 0.4s ease; overflow-x: hidden; }
 
-    /* 🎥 CINEMATIC GRAIN OVERLAY */
-    body::after {
-      content: ""; position: fixed; inset: 0; z-index: 9998; pointer-events: none; opacity: 0.03;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    /* Subtle Animated Background */
+    .motion-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.15; animation: drift 20s infinite alternate ease-in-out; }
+    .orb-1 { width: 50vw; height: 50vw; background: var(--accent); top: -10%; left: -10%; }
+    .orb-2 { width: 40vw; height: 40vw; background: #4ecdc4; bottom: -10%; right: -10%; animation-delay: -5s; }
+    @keyframes drift { from { transform: translate(0,0); } to { transform: translate(5vw, 5vh); } }
+
+    /* Typography */
+    .hero-title { font-family: 'Syne'; font-size: clamp(3rem, 12vw, 6rem); font-weight: 800; line-height: 0.9; letter-spacing: -0.04em; }
+    .gradient-text { background: linear-gradient(135deg, var(--accent), #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Grid & Restored Split-Cards */
+    .grid { display: grid; gap: 24px; width: 100%; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    
+    .card-pro { 
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px; 
+      overflow: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
     }
+    .card-pro:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 
-    /* 🌊 LIQUID BACKGROUND & AURA */
-    .motion-bg { position: fixed; inset: 0; z-index: -2; overflow: hidden; filter: blur(90px); opacity: 0.4; }
-    .blob { position: absolute; width: 50vw; height: 50vw; min-width: 400px; min-height: 400px; background: var(--accent); animation: morph 15s infinite alternate ease-in-out; }
-    .blob-1 { top: -10%; left: -10%; border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
-    .blob-2 { bottom: -10%; right: -10%; background: #a855f7; animation-delay: -5s; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-    @keyframes morph { 0% { transform: translate(0,0) rotate(0deg) scale(1); } 100% { transform: translate(10vw, 10vh) rotate(90deg) scale(1.1); } }
+    /* Animations */
+    .reveal { opacity: 0; animation: revealUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    @keyframes revealUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Inputs & Buttons */
+    .input-pro { width: 100%; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--border); background: var(--glass); color: var(--text); font-size: 1rem; margin-bottom: 12px; outline: none; transition: 0.2s; font-family: inherit; }
+    .input-pro:focus { border-color: var(--accent); }
     
-    .aura { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, var(--accent) 0%, transparent 60%); filter: blur(100px); opacity: 0.1; pointer-events: none; z-index: -1; transition: transform 0.2s ease-out; }
+    .btn-pro { background: var(--accent); color: #fff; border: none; padding: 16px 32px; border-radius: 14px; font-family: 'Syne'; font-weight: 800; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; width: 100%; }
+    .btn-pro:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,107,53,0.3); }
 
-    /* 🚀 HERO (ANTI-OVERLAP FLEX) */
-    .hero-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 5vh; }
-    .premium-title { font-family: 'Syne'; font-size: clamp(3.5rem, 15vw, 8rem); font-weight: 800; line-height: 0.8; letter-spacing: -0.05em; text-transform: uppercase; margin-bottom: 5px; }
-    .vault-title { font-family: 'Syne'; font-size: clamp(3rem, 12vw, 6.5rem); font-weight: 800; color: var(--accent); line-height: 0.8; text-transform: uppercase; }
-
-    /* 📦 LAYOUT & COMPONENTS */
-    .grid { display: grid; gap: 24px; width: 100%; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-    
-    .glass { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 30px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-    .card-hover { cursor: pointer; }
-    .card-hover:hover { transform: translateY(-12px); background: var(--glass-hover); border-color: var(--accent); box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
-
-    /* ✨ ANIMATIONS */
-    .spring-up { opacity: 0; animation: springUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-    @keyframes springUp { from { opacity: 0; transform: translateY(50px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-    /* 🎛️ CONTROLS */
-    .input-art { width: 100%; padding: 18px 24px; border-radius: 16px; border: 1px solid var(--border); background: var(--glass); color: var(--text); font-size: 1rem; margin-bottom: 16px; outline: none; transition: 0.3s; font-family: inherit; }
-    .input-art:focus { border-color: var(--accent); background: var(--glass-hover); box-shadow: 0 0 0 4px rgba(255,107,53,0.1); }
-    
-    .btn-art { background: var(--accent); color: #fff; border: none; padding: 18px 32px; border-radius: 16px; font-family: 'Syne'; font-weight: 800; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 2px; width: 100%; }
-    .btn-art:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 15px 30px var(--accent)50; filter: brightness(1.2); }
-    .btn-art:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .pill-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; justify-content: center; scrollbar-width: none; }
-    .pill { padding: 12px 24px; border-radius: 40px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-weight: 700; cursor: pointer; white-space: nowrap; font-family: 'Syne'; transition: 0.3s; }
-    .pill.active { background: var(--accent); color: #fff; border-color: var(--accent); transform: scale(1.05); }
-
-    /* ADMIN ISOLATION */
-    .admin-grid { display: grid; gap: 40px; grid-template-columns: 1fr; }
-    @media (min-width: 900px) { .admin-grid { grid-template-columns: 1fr 1fr; } }
+    .pill { padding: 10px 20px; border-radius: 40px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-weight: 700; cursor: pointer; white-space: nowrap; font-family: 'Syne'; font-size: 0.85rem; transition: 0.2s; }
+    .pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
   `}</style>
 );
 
@@ -118,20 +116,12 @@ export default function App() {
   const [activeCat, setActiveCat] = useState("all");
   const [detailItem, setDetailItem] = useState(null);
   const [session, setSession] = useState(() => JSON.parse(localStorage.getItem(SESSION_KEY)));
-  const [scrollY, setScrollY] = useState(0);
 
-  // 🛡️ Secret Access Logic
   const clickCount = useRef(0);
   const clickTimer = useRef(null);
 
   const fetchAll = async () => { setResources(await db.getAll()); };
-  
-  useEffect(() => { 
-    fetchAll();
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
 
   const handleSecretAccess = () => {
     clickCount.current += 1;
@@ -154,46 +144,38 @@ export default function App() {
   return (
     <>
       <GlobalStyle dark={dark} accent={accent} />
+      <div className="motion-bg"><div className="orb orb-1"/><div className="orb orb-2"/></div>
       
-      {/* 🌊 MOTION ENGINE */}
-      <div className="motion-bg"><div className="blob blob-1"/><div className="blob blob-2"/></div>
-      <div className="aura" style={{ transform: `translate(10vw, ${scrollY * 0.4}px)` }} />
-      
-      {/* 🧭 NAVIGATION (Z-INDEX 9999) */}
       <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 9999, padding: "20px 5%", display: "flex", justifyContent: "space-between", alignItems: "center", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)" }}>
-        <h2 onClick={handleSecretAccess} style={{ cursor: "pointer", fontFamily: 'Syne', fontWeight: 800, fontSize: "1.5rem" }}>
+        <h2 onClick={handleSecretAccess} style={{ cursor: "pointer", fontFamily: 'Syne', fontWeight: 800, fontSize: "1.4rem" }}>
           Creator<span style={{color:'var(--accent)'}}>Hub</span>
         </h2>
-        <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, cursor: "pointer", letterSpacing: "1px", fontSize: "0.8rem" }}>ARCHIVE</button>
-          <div onClick={() => setAccent(accent === "#ff6b35" ? "#a855f7" : "#ff6b35")} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--accent)", cursor: "pointer", border: "2px solid white" }} />
-          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer" }}>{dark ? "🌚" : "🌞"}</button>
+        <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, cursor: "pointer", fontSize: "0.8rem" }}>LIBRARY</button>
+          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.3rem", cursor: "pointer" }}>{dark ? "🌚" : "🌞"}</button>
         </div>
       </nav>
 
-      <div style={{ paddingTop: "120px", paddingBottom: "100px", position: "relative", zIndex: 10 }}>
+      <div style={{ paddingTop: "120px", paddingBottom: "80px", position: "relative", zIndex: 10 }}>
         
-        {/* 🚀 HERO SECTION */}
         {page === "home" && (
-          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "10vh 24px" }}>
-            <div className="hero-container spring-up" style={{ transform: `translateY(${scrollY * 0.2}px)` }}>
-              <div className="premium-title">Premium</div>
-              <div className="vault-title">Vault</div>
-              <p style={{ color: "var(--muted)", margin: "40px 0", maxWidth: "550px", fontSize: "1.2rem", lineHeight: 1.6 }}>
-                A highly curated, cloud-synced digital archive for the next generation of visual artists and creators.
-              </p>
-              <button className="btn-art" style={{ width: "auto" }} onClick={() => setPage("browse")}>ENTER ARCHIVE</button>
-            </div>
+          <main className="reveal" style={{ maxWidth: "1000px", margin: "0 auto", padding: "10vh 24px", textAlign: "center" }}>
+            <h1 className="hero-title" style={{ marginBottom: "20px" }}>
+              Archive <br/><span className="gradient-text">Infinity</span>
+            </h1>
+            <p style={{ color: "var(--muted)", margin: "0 auto 40px", maxWidth: "500px", fontSize: "1.1rem", lineHeight: 1.6 }}>
+              Premium digital assets tailored for the next generation of creative professionals.
+            </p>
+            <button className="btn-pro" style={{ width: "auto" }} onClick={() => setPage("browse")}>EXPLORE RESOURCES</button>
           </main>
         )}
 
-        {/* 📂 BROWSE SECTION */}
         {page === "browse" && (
-          <main style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
-            <div className="spring-up" style={{ textAlign: "center", marginBottom: "60px" }}>
-              <h1 style={{ fontFamily: 'Syne', fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: "30px" }}>The Library</h1>
-              <input className="input-art" style={{ maxWidth: "600px" }} placeholder="Query the database..." onChange={e => setSearch(e.target.value)} />
-              <div className="pill-scroll">
+          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+            <div className="reveal" style={{ textAlign: "center", marginBottom: "50px" }}>
+              <h1 style={{ fontFamily: 'Syne', fontSize: '2.5rem', marginBottom: "25px" }}>The Library</h1>
+              <input className="input-pro" style={{ maxWidth: "500px" }} placeholder="Search assets..." onChange={e => setSearch(e.target.value)} />
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", overflowX: "auto", paddingBottom: "10px", marginTop: "15px" }}>
                 <button className={`pill ${activeCat === 'all' ? 'active' : ''}`} onClick={() => setActiveCat("all")}>All Units</button>
                 {CATEGORIES.map(c => <button key={c.id} className={`pill ${activeCat === c.id ? 'active' : ''}`} onClick={() => setActiveCat(c.id)}>{c.icon} {c.label}</button>)}
               </div>
@@ -201,13 +183,19 @@ export default function App() {
             
             <div className="grid">
               {filtered.map((r, i) => (
-                <div key={r.id} className="glass card-hover spring-up" style={{ animationDelay: `${i * 0.08}s` }} onClick={() => { setDetailItem(r); setPage("detail"); }}>
-                  <div style={{ fontSize: "4.5rem", textAlign: "center", marginBottom: "25px" }}>{CATEGORIES.find(c => c.id === r.category)?.icon}</div>
-                  <div style={{ color: "var(--accent)", fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>{r.category}</div>
-                  <h3 style={{ fontFamily: 'Syne', fontSize: '1.3rem', marginBottom: "20px" }}>{r.title}</h3>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border)", paddingTop: "15px" }}>
-                    <span style={{ color: "#38ef7d", fontWeight: 800 }}>{r.price}</span>
-                    <span style={{ color: "var(--muted)", fontSize: "0.85rem" }}>⬇️ {r.downloads || 0}</span>
+                <div key={r.id} className="card-pro reveal" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => { setDetailItem(r); setPage("detail"); }}>
+                  {/* RESTORED: Colored Top Half */}
+                  <div style={{ height: "160px", background: `linear-gradient(135deg, ${CATEGORIES.find(c => c.id === r.category)?.color}15, transparent)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4rem", borderBottom: "1px solid var(--border)" }}>
+                    {CATEGORIES.find(c => c.id === r.category)?.icon}
+                  </div>
+                  {/* RESTORED: Clean Bottom Half */}
+                  <div style={{ padding: "24px", textAlign: "left" }}>
+                    <div style={{ color: "var(--accent)", fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "8px" }}>{r.category}</div>
+                    <h3 style={{ fontFamily: 'Syne', fontSize: '1.2rem', marginBottom: "15px", lineHeight: 1.3 }}>{r.title}</h3>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border)", paddingTop: "15px" }}>
+                      <span style={{ color: "#38ef7d", fontWeight: 800, fontSize: "0.9rem" }}>{r.price || "Free"}</span>
+                      <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>⬇️ {r.downloads || 0}</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -215,22 +203,20 @@ export default function App() {
           </main>
         )}
 
-        {/* 🔍 DETAIL SECTION */}
         {page === "detail" && detailItem && (
-          <main className="spring-up" style={{ maxWidth: "850px", margin: "0 auto", padding: "0 24px" }}>
-            <button onClick={() => setPage("browse")} style={{ color: 'var(--text)', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', marginBottom: "40px", fontFamily: 'Syne', letterSpacing: "2px" }}>← RETURN TO GRID</button>
-            <div className="glass">
+          <main className="reveal" style={{ maxWidth: "800px", margin: "0 auto", padding: "0 24px" }}>
+            <button onClick={() => setPage("browse")} style={{ color: 'var(--accent)', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', marginBottom: "30px", fontFamily: 'Syne', letterSpacing: "1px" }}>← BACK TO LIBRARY</button>
+            <div className="card-pro" style={{ padding: "40px" }}>
               <div style={{ fontSize: "5rem", marginBottom: "20px" }}>{CATEGORIES.find(c => c.id === detailItem.category)?.icon}</div>
-              <h1 style={{ fontFamily: 'Syne', fontSize: 'clamp(2rem, 6vw, 4rem)', marginBottom: "20px", lineHeight: 1 }}>{detailItem.title}</h1>
-              <p style={{ lineHeight: 1.8, color: 'var(--muted)', fontSize: '1.2rem', marginBottom: "50px" }}>{detailItem.description}</p>
-              <a href={detailItem.download_link} target="_blank" rel="noreferrer" className="btn-art" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>DOWNLOAD ASSET</a>
+              <h1 style={{ fontFamily: 'Syne', fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: "20px", lineHeight: 1.1 }}>{detailItem.title}</h1>
+              <p style={{ lineHeight: 1.7, color: 'var(--muted)', fontSize: '1.1rem', marginBottom: "40px" }}>{detailItem.description}</p>
+              <a href={detailItem.download_link} target="_blank" rel="noreferrer" className="btn-pro" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>DOWNLOAD ASSET</a>
             </div>
           </main>
         )}
 
-        {/* 🔐 ADMIN SECTION (BULLETPROOF STATE) */}
         {page === "admin" && (
-          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <main style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px" }}>
             {!session ? (
               <AdminLogin onLogin={(s) => { setSession(s); localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }} />
             ) : (
@@ -243,7 +229,7 @@ export default function App() {
   );
 }
 
-// ─── ADMIN HELPERS (STRICT STATE MANAGEMENT) ─────────────────────────────────
+// ─── ADMIN HELPERS (FULLY FUNCTIONAL AGAIN) ──────────────────────────────────
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -257,15 +243,15 @@ function AdminLogin({ onLogin }) {
     });
     const d = await r.json();
     setLoading(false);
-    if (r.ok) onLogin(d); else alert("Access Denied. Check Supabase Credentials.");
+    if (r.ok) onLogin(d); else alert("Access Denied.");
   };
 
   return (
-    <div className="glass spring-up" style={{ maxWidth: "500px", margin: "0 auto", padding: "50px", textAlign: "center" }}>
-      <h3 style={{ fontFamily: 'Syne', fontSize: '2rem', marginBottom: "40px" }}>Vault Access</h3>
-      <input placeholder="Admin ID" className="input-art" value={email} onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Passkey" className="input-art" value={pass} onChange={e => setPass(e.target.value)} />
-      <button className="btn-art" onClick={handleAuth} disabled={loading}>{loading ? "VERIFYING..." : "INITIATE SESSION"}</button>
+    <div className="card-pro reveal" style={{ maxWidth: "450px", margin: "0 auto", padding: "40px", textAlign: "center", background: "var(--glass)" }}>
+      <h3 style={{ fontFamily: 'Syne', fontSize: '1.8rem', marginBottom: "30px" }}>Vault Access</h3>
+      <input placeholder="Admin ID" className="input-pro" value={email} onChange={e => setEmail(e.target.value)} />
+      <input type="password" placeholder="Passkey" className="input-pro" value={pass} onChange={e => setPass(e.target.value)} />
+      <button className="btn-pro" onClick={handleAuth} disabled={loading}>{loading ? "VERIFYING..." : "LOGIN"}</button>
     </div>
   );
 }
@@ -273,55 +259,57 @@ function AdminLogin({ onLogin }) {
 function AdminDashboard({ resources, token, onUpdate, onLogout }) {
   const [f, setF] = useState({ title: "", description: "", category: "video", download_link: "", price: "Free" });
   const [editId, setEditId] = useState(null);
-  const [deploying, setDeploying] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    if(!f.title || !f.download_link) return alert("Title and Cloud Link are mandatory.");
-    setDeploying(true);
+    if(!f.title || !f.download_link) return alert("Title and Link are required.");
+    setSaving(true);
     const ok = await db.upsert(f, token, editId);
-    setDeploying(false);
+    setSaving(false);
     if(ok) { 
       setF({ title: "", description: "", category: "video", download_link: "", price: "Free" }); 
       setEditId(null); 
       onUpdate(); 
-      alert("Asset Synced to Cloud."); 
+      alert("Successfully Saved to Cloud!"); 
     } else {
-      alert("Database error. Check Supabase RLS policies.");
+      alert("Error saving data. Check console.");
     }
   };
 
   return (
-    <div className="admin-grid spring-up">
-      <div className="glass" style={{ height: "fit-content" }}>
-        <h3 style={{ fontFamily: 'Syne', fontSize: '1.5rem', marginBottom: "30px" }}>{editId ? "Modify" : "Mint"} Asset</h3>
-        <input placeholder="Asset Title" value={f.title} className="input-art" onChange={e => setF({...f, title: e.target.value})} />
-        <textarea placeholder="Metadata / Description" value={f.description} className="input-art" style={{ height: "140px", resize: "none" }} onChange={e => setF({...f, description: e.target.value})} />
-        <input placeholder="Cloud Source URL" value={f.download_link} className="input-art" onChange={e => setF({...f, download_link: e.target.value})} />
-        <select className="input-art" value={f.category} onChange={e => setF({...f, category: e.target.value})}>
+    <div className="reveal" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "30px" }}>
+      <div className="card-pro" style={{ padding: "30px", height: "fit-content", background: "var(--glass)" }}>
+        <h3 style={{ fontFamily: 'Syne', fontSize: '1.4rem', marginBottom: "25px" }}>{editId ? "Edit" : "Add"} Resource</h3>
+        <input placeholder="Title" value={f.title} className="input-pro" onChange={e => setF({...f, title: e.target.value})} />
+        <textarea placeholder="Description" value={f.description} className="input-pro" style={{ height: "100px", resize: "none" }} onChange={e => setF({...f, description: e.target.value})} />
+        <input placeholder="Download URL" value={f.download_link} className="input-pro" onChange={e => setF({...f, download_link: e.target.value})} />
+        <input placeholder="Price (e.g., Free, $5)" value={f.price} className="input-pro" onChange={e => setF({...f, price: e.target.value})} />
+        
+        <select className="input-pro" value={f.category} onChange={e => setF({...f, category: e.target.value})}>
           {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select>
-        <button className="btn-art" onClick={save} disabled={deploying}>{deploying ? "SYNCING..." : (editId ? "OVERWRITE CLOUD" : "DEPLOY TO CLOUD")}</button>
-        {editId && <button onClick={() => { setEditId(null); setF({title:"",description:"",category:"video",download_link:"",price:"Free"}) }} style={{ width: '100%', marginTop: 15, padding: 15, background: 'none', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 16, cursor: 'pointer', fontWeight: 800 }}>CANCEL EDIT</button>}
+        
+        <button className="btn-pro" onClick={save} disabled={saving}>{saving ? "SYNCING..." : (editId ? "UPDATE CLOUD" : "PUBLISH")}</button>
+        {editId && <button onClick={() => { setEditId(null); setF({title:"",description:"",category:"video",download_link:"",price:"Free"}) }} style={{ width: '100%', marginTop: 10, padding: 15, background: 'none', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 14, cursor: 'pointer', fontWeight: 700 }}>CANCEL</button>}
       </div>
       
-      <div className="glass">
-        <h3 style={{ fontFamily: 'Syne', fontSize: '1.5rem', marginBottom: "30px" }}>Cloud Inventory</h3>
-        <div style={{ maxHeight: "600px", overflowY: "auto", paddingRight: 10 }}>
+      <div className="card-pro" style={{ padding: "30px", background: "var(--glass)" }}>
+        <h3 style={{ fontFamily: 'Syne', fontSize: '1.4rem', marginBottom: "25px" }}>Inventory</h3>
+        <div style={{ maxHeight: "500px", overflowY: "auto", paddingRight: 10 }}>
           {resources.map(r => (
-            <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', borderBottom: '1px solid var(--border)' }}>
+            <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid var(--border)' }}>
               <div>
-                <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{r.title}</div>
-                <div style={{ color: 'var(--accent)', fontSize: '0.7rem', textTransform: 'uppercase', marginTop: 5 }}>{r.category}</div>
+                <div style={{ fontWeight: 700 }}>{r.title}</div>
+                <div style={{ color: 'var(--accent)', fontSize: '0.7rem', textTransform: 'uppercase', marginTop: 4 }}>{r.category}</div>
               </div>
-              <div style={{ display: 'flex', gap: "15px" }}>
-                <button onClick={() => { setF(r); setEditId(r.id); window.scrollTo(0,0); }} style={{ color: 'var(--text)', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', padding: 10 }}>EDIT</button>
-                <button onClick={async () => { if(confirm("Permanently delete from cloud?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: '#ff3b30', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', padding: 10 }}>DEL</button>
+              <div style={{ display: 'flex', gap: "10px" }}>
+                <button onClick={() => { setF(r); setEditId(r.id); window.scrollTo(0,0); }} style={{ color: 'var(--text)', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', padding: 8 }}>EDIT</button>
+                <button onClick={async () => { if(confirm("Delete permanently?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: '#ff3b30', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', padding: 8 }}>DEL</button>
               </div>
             </div>
           ))}
-          {resources.length === 0 && <p style={{ color: "var(--muted)" }}>No assets in vault.</p>}
         </div>
-        <button onClick={onLogout} style={{ marginTop: "40px", width: '100%', padding: 20, background: 'none', border: 'none', color: '#ff3b30', fontWeight: 800, cursor: 'pointer', letterSpacing: "2px" }}>TERMINATE SECURE SESSION</button>
+        <button onClick={onLogout} style={{ marginTop: "30px", width: '100%', padding: 15, background: 'none', border: 'none', color: '#ff3b30', fontWeight: 800, cursor: 'pointer' }}>LOGOUT</button>
       </div>
     </div>
   );
