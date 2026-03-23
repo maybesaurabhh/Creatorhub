@@ -12,7 +12,7 @@ const CATEGORIES = [
   { id: "reels", label: "Reels", icon: "🎞️", color: "#a8edea" },
 ];
 
-// ─── API ENGINE (STABLE) ─────────────────────────────────────────────────────
+// ─── API ENGINE ──────────────────────────────────────────────────────────────
 const db = {
   async getAll() {
     try {
@@ -40,7 +40,7 @@ const db = {
   }
 };
 
-// ─── STYLES (NO MORE OVERLAP) ────────────────────────────────────────────────
+// ─── STYLES (THE ARTISTIC RESTORATION) ───────────────────────────────────────
 const GlobalStyle = ({ dark, accent }) => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
@@ -50,61 +50,40 @@ const GlobalStyle = ({ dark, accent }) => (
     :root {
       --bg: ${dark ? "#050505" : "#fdfdfd"};
       --text: ${dark ? "#ffffff" : "#0a0a0a"};
+      --muted: ${dark ? "rgba(128,128,128,0.5)" : "rgba(80,80,80,0.5)"};
       --accent: ${accent || "#ff6b35"};
-      --border: ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"};
-      --glass: ${dark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.7)"};
+      --border: ${dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"};
+      --glass: ${dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.7)"};
     }
 
     body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
 
-    /* 🌊 AURA GLOW (FOLLOWS FINGER/SCROLL) */
-    .aura {
-      position: fixed; width: 400px; height: 400px; border-radius: 50%;
-      background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-      filter: blur(80px); opacity: 0.15; pointer-events: none; z-index: -1;
-      transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    }
+    /* Motion Background */
+    .motion-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.15; animation: float 20s infinite alternate; }
+    .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -10%; left: -10%; }
+    .orb-2 { width: 400px; height: 400px; background: #4ecdc4; bottom: -5%; right: -5%; animation-delay: -5s; }
+    @keyframes float { from { transform: translate(0,0) scale(1); } to { transform: translate(50px, 50px) scale(1.1); } }
 
-    /* 🎨 HERO TYPOGRAPHY FIX */
-    .hero-container {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0; /* Ensures they don't drift apart */
-    }
+    /* Hero Fix */
+    .hero-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 0 50px; }
+    .premium-txt { font-family: 'Syne'; font-size: clamp(3rem, 12vw, 7rem); font-weight: 800; line-height: 0.8; letter-spacing: -0.05em; margin-bottom: 10px; }
+    .vault-txt { font-family: 'Syne'; font-size: clamp(2.5rem, 10vw, 5rem); font-weight: 800; color: var(--accent); line-height: 0.8; }
 
-    .premium-text {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(3rem, 15vw, 8rem);
-      font-weight: 800;
-      line-height: 0.7;
-      letter-spacing: -0.05em;
-      margin-bottom: -0.2em; /* Tucked closer */
-    }
+    /* Grid & Cards (The Fix) */
+    .grid { display: grid; gap: 24px; width: 100%; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); padding: 20px; }
+    .glass { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 28px; padding: 30px; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; text-align: center; }
+    .glass:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 
-    .vault-text {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2.5rem, 12vw, 6rem);
-      font-weight: 800;
-      color: var(--accent);
-      line-height: 1;
-      z-index: 2;
-    }
+    /* Animations */
+    .spring-up { opacity: 0; animation: springUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    @keyframes springUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 
-    .glass { 
-      background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-      border: 1px solid var(--border); border-radius: 30px; 
-      padding: 24px; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    .input-art { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--border); background: var(--glass); color: var(--text); font-size: 1rem; margin-bottom: 15px; outline: none; transition: 0.3s; }
+    .input-art:focus { border-color: var(--accent); }
 
-    .grid { display: grid; gap: 30px; width: 100%; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-    
-    .input-art {
-      width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--border);
-      background: var(--glass); color: var(--text); outline: none; margin-bottom: 15px;
-    }
+    .pill { padding: 10px 20px; border-radius: 40px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-weight: 700; cursor: pointer; white-space: nowrap; font-family: 'Syne'; }
+    .pill.active { background: var(--accent); color: #fff; }
   `}</style>
 );
 
@@ -118,98 +97,89 @@ export default function App() {
   const [activeCat, setActiveCat] = useState("all");
   const [detailItem, setDetailItem] = useState(null);
   const [session, setSession] = useState(() => JSON.parse(localStorage.getItem(SESSION_KEY)));
-  const [scrollY, setScrollY] = useState(0);
 
   const fetchAll = async () => { setResources(await db.getAll()); };
-  
-  useEffect(() => { 
-    fetchAll();
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
 
   const filtered = useMemo(() => {
     return resources.filter(r => {
-      const matchText = r.title?.toLowerCase().includes(search.toLowerCase());
-      const matchCat = activeCat === "all" || r.category === activeCat;
-      return matchText && matchCat;
+      const tMatch = r.title?.toLowerCase().includes(search.toLowerCase());
+      const cMatch = activeCat === "all" || r.category === activeCat;
+      return tMatch && cMatch;
     });
   }, [resources, search, activeCat]);
 
   return (
     <>
       <GlobalStyle dark={dark} accent={accent} />
+      <div className="motion-bg"><div className="orb orb-1"/><div className="orb orb-2"/></div>
       
-      {/* 🌊 MOTION AURA */}
-      <div className="aura" style={{ transform: `translate(10vw, ${scrollY * 0.5}px)` }} />
-
-      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 2000, padding: "20px 6%", display: "flex", justifyContent: "space-between", alignItems: "center", backdropFilter: "blur(15px)" }}>
-        <div onClick={() => { if(window.confirm("Admin Vault?")) setPage("admin") }} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.4rem" }}>
-          Creator<span style={{ color: "var(--accent)" }}>Hub</span>
-        </div>
+      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000, padding: "20px 5%", display: "flex", justifyContent: "space-between", alignItems: "center", backdropFilter: "blur(15px)" }}>
+        <h2 onClick={() => setPage("home")} style={{ cursor: "pointer", fontFamily: 'Syne', fontWeight: 800 }}>Creator<span style={{color:'var(--accent)'}}>Hub</span></h2>
         <div style={{ display: "flex", gap: "20px" }}>
-          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, fontSize: "0.75rem", cursor: "pointer" }}>ARCHIVE</button>
-          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.2rem" }}>{dark ? "🌚" : "🌞"}</button>
+          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, cursor: "pointer" }}>ARCHIVE</button>
+          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.4rem" }}>{dark ? "🌚" : "🌞"}</button>
         </div>
       </nav>
 
-      <div style={{ paddingTop: "120px" }}>
-        
-        {/* HOME (FIXED OVERLAP) */}
+      <div style={{ paddingTop: "100px" }}>
         {page === "home" && (
-          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "10vh 20px", textAlign: "center" }}>
-            <div className="hero-container" style={{ transform: `translateY(${scrollY * 0.15}px)` }}>
-              <div className="premium-text">Premium</div>
-              <div className="vault-text">Vault</div>
-            </div>
-            <p style={{ color: "var(--muted)", maxWidth: "500px", margin: "40px auto", fontSize: "1.1rem" }}>
-              Curated digital assets for the next generation of creators.
-            </p>
-            <button className="glass" style={{ cursor: "pointer", padding: "15px 30px", fontWeight: 800, background: "var(--accent)", color: "white" }} onClick={() => setPage("browse")}>
-              EXPLORE
-            </button>
+          <main className="spring-up hero-wrap">
+            <div className="premium-txt">Premium</div>
+            <div className="vault-txt">Vault</div>
+            <p style={{ color: "var(--muted)", marginTop: 20, maxWidth: 500, textAlign: 'center' }}>High-motion assets for modern creators.</p>
+            <button className="glass" style={{ marginTop: 40, padding: '15px 40px', background: 'var(--accent)', color: '#fff', fontWeight: 800 }} onClick={() => setPage("browse")}>EXPLORE ARCHIVE</button>
           </main>
         )}
 
-        {/* BROWSE PAGE */}
         {page === "browse" && (
-          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-            <div style={{ textAlign: "center", marginBottom: "50px" }}>
-              <h2 style={{ fontFamily: "Syne", fontSize: "2.5rem", marginBottom: "20px" }}>Archive</h2>
-              <input className="input-art" placeholder="Query database..." onChange={e => setSearch(e.target.value)} />
-              <div style={{ display: "flex", gap: "10px", justifyContent: "center", overflowX: "auto" }}>
-                <button onClick={() => setActiveCat("all")}>All</button>
-                {CATEGORIES.map(c => <button key={c.id} onClick={() => setActiveCat(c.id)}>{c.icon} {c.label}</button>)}
+          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
+            <div className="spring-up" style={{ textAlign: "center", marginBottom: 50 }}>
+              <h1 style={{ fontFamily: 'Syne', fontSize: '3.5rem', marginBottom: 20 }}>Archive</h1>
+              <input className="input-art" style={{ maxWidth: 500 }} placeholder="Query data..." onChange={e => setSearch(e.target.value)} />
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", overflowX: "auto", padding: 10 }}>
+                <button className={`pill ${activeCat === 'all' ? 'active' : ''}`} onClick={() => setActiveCat("all")}>All</button>
+                {CATEGORIES.map(c => <button key={c.id} className={`pill ${activeCat === c.id ? 'active' : ''}`} onClick={() => setActiveCat(c.id)}>{c.icon} {c.label}</button>)}
               </div>
             </div>
             <div className="grid">
-              {filtered.map(r => (
-                <div key={r.id} className="glass" onClick={() => { setDetailItem(r); setPage("detail"); }}>
-                  <div style={{ fontSize: "3rem", textAlign: "center" }}>{CATEGORIES.find(c => c.id === r.category)?.icon}</div>
-                  <h3 style={{ fontFamily: "Syne", marginTop: 10 }}>{r.title}</h3>
+              {filtered.map((r, i) => (
+                <div key={r.id} className="glass spring-up" style={{ animationDelay: `${i * 0.1}s` }} onClick={() => { setDetailItem(r); setPage("detail"); }}>
+                  <div style={{ fontSize: "4rem", marginBottom: 15 }}>{CATEGORIES.find(c => c.id === r.category)?.icon}</div>
+                  <h3 style={{ fontFamily: 'Syne', fontSize: '1.2rem' }}>{r.title}</h3>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: 10 }}>{r.price} • {r.downloads || 0} downloads</p>
                 </div>
               ))}
             </div>
           </main>
         )}
 
-        {/* ADMIN PAGE (RE-STABILIZED) */}
+        {page === "detail" && detailItem && (
+          <main className="spring-up" style={{ maxWidth: 800, margin: "0 auto", padding: 40 }}>
+            <button onClick={() => setPage("browse")} style={{ color: 'var(--accent)', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', marginBottom: 30 }}>← RETURN</button>
+            <div className="glass">
+              <h1 style={{ fontFamily: 'Syne', fontSize: '3rem', marginBottom: 20 }}>{detailItem.title}</h1>
+              <p style={{ lineHeight: 1.8, color: 'var(--muted)', fontSize: '1.2rem', marginBottom: 40 }}>{detailItem.description}</p>
+              <a href={detailItem.download_link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', display: 'block', textAlign: 'center', padding: 20, background: 'var(--accent)', color: '#fff', borderRadius: 15, fontWeight: 800 }}>DOWNLOAD ASSET</a>
+            </div>
+          </main>
+        )}
+
         {page === "admin" && (
-          <main style={{ maxWidth: "600px", margin: "0 auto" }}>
+          <main style={{ maxWidth: 600, margin: "0 auto", padding: 20 }}>
             {!session ? (
-              <div className="glass">
-                <h3>Admin ID</h3>
+              <div className="glass spring-up">
+                <h2 style={{ fontFamily: 'Syne', marginBottom: 30 }}>Vault Login</h2>
                 <input className="input-art" placeholder="Email" onChange={e => (window.email = e.target.value)} />
                 <input className="input-art" type="password" placeholder="Passkey" onChange={e => (window.pass = e.target.value)} />
-                <button className="input-art" onClick={async () => {
-                  const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-                    method: "POST", headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
-                    body: JSON.stringify({ email: window.email, password: window.pass })
-                  });
-                  const d = await r.json();
-                  if(r.ok) { setSession(d); localStorage.setItem(SESSION_KEY, JSON.stringify(d)); } else alert("Denied");
-                }}>LOGIN</button>
+                <button className="input-art" style={{ background: 'var(--accent)', color: '#fff', fontWeight: 800 }} onClick={async () => {
+                   const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                     method: "POST", headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
+                     body: JSON.stringify({ email: window.email, password: window.pass })
+                   });
+                   const d = await r.json();
+                   if(r.ok) { setSession(d); localStorage.setItem(SESSION_KEY, JSON.stringify(d)); } else alert("Denied");
+                }}>INITIATE</button>
               </div>
             ) : (
               <AdminDashboard resources={resources} token={session.access_token} onUpdate={fetchAll} onLogout={() => { setSession(null); setPage("home"); }} />
@@ -223,16 +193,35 @@ export default function App() {
 
 function AdminDashboard({ resources, token, onUpdate, onLogout }) {
   const [f, setF] = useState({ title: "", description: "", category: "video", download_link: "", price: "Free" });
+  const [editId, setEditId] = useState(null);
   const save = async () => {
-    const ok = await db.upsert(f, token);
-    if(ok) { setF({ title: "", description: "", category: "video", download_link: "", price: "Free" }); onUpdate(); alert("Saved"); }
+    const ok = await db.upsert(f, token, editId);
+    if(ok) { setF({ title: "", description: "", category: "video", download_link: "", price: "Free" }); setEditId(null); onUpdate(); alert("Synced"); }
   };
   return (
-    <div className="glass">
-      <input placeholder="Title" value={f.title} className="input-art" onChange={e => setF({...f, title: e.target.value})} />
-      <input placeholder="Link" value={f.download_link} className="input-art" onChange={e => setF({...f, download_link: e.target.value})} />
-      <button className="input-art" onClick={save}>DEPLOY</button>
-      <button onClick={onLogout}>LOGOUT</button>
+    <div style={{ display: 'grid', gap: 30 }}>
+      <div className="glass">
+        <h3 style={{ fontFamily: 'Syne', marginBottom: 20 }}>{editId ? "Modify" : "Mint"} Asset</h3>
+        <input placeholder="Title" value={f.title} className="input-art" onChange={e => setF({...f, title: e.target.value})} />
+        <textarea placeholder="Description" value={f.description} className="input-art" style={{ height: 120 }} onChange={e => setF({...f, description: e.target.value})} />
+        <input placeholder="Link" value={f.download_link} className="input-art" onChange={e => setF({...f, download_link: e.target.value})} />
+        <select className="input-art" value={f.category} onChange={e => setF({...f, category: e.target.value})}>
+          {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+        </select>
+        <button className="input-art" style={{ background: 'var(--accent)', color: '#fff', fontWeight: 800 }} onClick={save}>DEPLOY</button>
+      </div>
+      <div className="glass">
+        {resources.map(r => (
+          <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ fontWeight: 700 }}>{r.title}</span>
+            <div style={{ display: 'flex', gap: 15 }}>
+              <button onClick={() => { setF(r); setEditId(r.id); }} style={{ color: 'var(--accent)', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
+              <button onClick={async () => { if(confirm("Purge?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: 'red', background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Del</button>
+            </div>
+          </div>
+        ))}
+        <button onClick={onLogout} style={{ marginTop: 30, width: '100%', background: 'none', border: 'none', color: 'var(--muted)', fontWeight: 800, cursor: 'pointer' }}>LOGOUT</button>
+      </div>
     </div>
   );
 }
