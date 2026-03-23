@@ -59,30 +59,40 @@ const GlobalStyle = ({ dark, accent }) => (
       background: var(--bg); 
       color: var(--text); 
       font-family: 'DM Sans', sans-serif; 
-      transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background 0.6s ease;
       overflow-x: hidden;
     }
 
-    /* Artistic Mesh Background */
-    .mesh-bg {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-      background: radial-gradient(circle at 20% 30%, ${accent}15 0%, transparent 40%),
-                  radial-gradient(circle at 80% 70%, #4ecdc415 0%, transparent 40%);
-      filter: blur(80px);
-      animation: drift 20s infinite alternate;
+    /* 🌊 MOTION BACKGROUND SYSTEM */
+    .motion-container {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: -1; overflow: hidden; background: var(--bg);
     }
 
-    @keyframes drift {
-      from { transform: scale(1); }
-      to { transform: scale(1.1) rotate(5deg); }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(100px);
+      opacity: ${dark ? 0.15 : 0.1}; mix-blend-mode: screen;
+      animation: float 25s infinite alternate ease-in-out;
     }
 
+    .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -10%; left: -10%; }
+    .orb-2 { width: 500px; height: 500px; background: #4ecdc4; bottom: -10%; right: -10%; animation-delay: -5s; }
+    .orb-3 { width: 400px; height: 400px; background: #a855f7; top: 40%; left: 50%; animation-delay: -10s; }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(100px, 50px) scale(1.1); }
+      100% { transform: translate(-50px, 100px) scale(0.9); }
+    }
+
+    /* 💎 UI POLISH */
     .glass { 
       background: var(--glass); 
-      backdrop-filter: blur(24px); 
-      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(30px); 
+      -webkit-backdrop-filter: blur(30px);
       border: 1px solid var(--border); 
-      border-radius: 24px; 
+      border-radius: 28px; 
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
     .gradient-text {
@@ -91,54 +101,31 @@ const GlobalStyle = ({ dark, accent }) => (
       -webkit-text-fill-color: transparent;
     }
 
-    /* Spring Animations */
+    .spring-up { 
+      opacity: 0;
+      animation: springUp 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; 
+    }
+
     @keyframes springUp {
-      0% { opacity: 0; transform: translateY(50px) scale(0.9); }
-      70% { transform: translateY(-5px) scale(1.02); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(60px) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    .spring-up { animation: springUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-
-    .card-art {
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
-    }
     .card-art:hover {
-      transform: translateY(-12px) scale(1.02);
+      transform: translateY(-15px) scale(1.03);
       border-color: var(--accent);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.4);
     }
 
     .btn-art {
       background: var(--accent);
-      color: #fff; border: none; padding: 18px 36px;
-      border-radius: 18px; font-family: 'Syne', sans-serif;
+      color: #fff; border: none; padding: 20px 40px;
+      border-radius: 20px; font-family: 'Syne', sans-serif;
       font-weight: 800; cursor: pointer; transition: 0.4s;
-      text-transform: uppercase; letter-spacing: 2px;
-      box-shadow: 0 10px 30px ${accent}40;
+      text-transform: uppercase; letter-spacing: 3px;
+      box-shadow: 0 15px 35px ${accent}40;
     }
-    .btn-art:hover { transform: translateY(-3px); box-shadow: 0 20px 40px ${accent}60; }
-
-    .search-art {
-      width: 100%; padding: 20px 30px; border-radius: 20px;
-      border: 1px solid var(--border); background: var(--glass);
-      color: var(--text); font-size: 1.1rem; outline: none; transition: 0.4s;
-      font-family: 'Syne', sans-serif;
-    }
-    .search-art:focus { border-color: var(--accent); background: ${dark ? "rgba(255,255,255,0.06)" : "#fff"}; }
-
-    .pill-art {
-      padding: 12px 24px; border-radius: 40px; background: var(--glass);
-      border: 1px solid var(--border); color: var(--text); font-weight: 700;
-      font-family: 'Syne', sans-serif; cursor: pointer; transition: 0.4s;
-    }
-    .pill-art.active { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-3px); }
-
-    .grid-art {
-      display: grid; gap: 30px; width: 100%;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
+    .btn-art:hover { transform: translateY(-5px); box-shadow: 0 25px 50px ${accent}60; }
   `}</style>
 );
 
@@ -180,47 +167,53 @@ export default function App() {
   return (
     <>
       <GlobalStyle dark={dark} accent={accent} />
-      <div className="mesh-bg" />
+      
+      {/* 🌊 MOTION BACKGROUND */}
+      <div className="motion-container">
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
+      </div>
       
       {/* Navbar */}
-      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 2000, padding: "20px 6%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div onClick={handleSecretAccess} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.05em" }}>
+      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 2000, padding: "25px 6%", display: "flex", justifyContent: "space-between", alignItems: "center", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--border)" }}>
+        <div onClick={handleSecretAccess} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.8rem", letterSpacing: "-0.06em" }}>
           Creator<span className="gradient-text">Hub</span>
         </div>
-        <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, fontSize: "0.8rem", letterSpacing: "2px", cursor: "pointer", fontFamily: "Syne" }}>LIBRARY</button>
-          <div onClick={() => setAccent(accent === "#ff6b35" ? "#a855f7" : "#ff6b35")} style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--accent)", cursor: "pointer" }} />
-          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer" }}>{dark ? "🌚" : "🌞"}</button>
+        <div style={{ display: "flex", gap: "25px", alignItems: "center" }}>
+          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, fontSize: "0.8rem", letterSpacing: "3px", cursor: "pointer", fontFamily: "Syne" }}>DASHBOARD</button>
+          <div onClick={() => setAccent(accent === "#ff6b35" ? "#a855f7" : "#ff6b35")} style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--accent)", cursor: "pointer", border: "2px solid white" }} />
+          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.6rem", cursor: "pointer" }}>{dark ? "🌚" : "🌞"}</button>
         </div>
       </nav>
 
-      <div style={{ paddingTop: "120px" }}>
+      <div style={{ paddingTop: "140px" }}>
         
-        {/* HERO */}
+        {/* HOME */}
         {page === "home" && (
-          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "12vh 24px", textAlign: "center" }}>
-            <h1 className="spring-up" style={{ fontSize: "clamp(3rem, 10vw, 6.5rem)", fontFamily: "Syne", fontWeight: 800, lineHeight: 0.85, marginBottom: "40px", letterSpacing: "-0.06em" }}>
-              Crafted for <br/><span className="gradient-text">The Bold</span>
+          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "10vh 24px", textAlign: "center" }}>
+            <h1 className="spring-up" style={{ fontSize: "clamp(3.5rem, 12vw, 7.5rem)", fontFamily: "Syne", fontWeight: 800, lineHeight: 0.8, marginBottom: "50px", letterSpacing: "-0.07em" }}>
+              The Future of <br/><span className="gradient-text">Workflow</span>
             </h1>
-            <p className="spring-up" style={{ animationDelay: "0.15s", color: "var(--muted)", maxWidth: "550px", margin: "0 auto 50px", fontSize: "1.2rem", fontWeight: 500 }}>
-              An artistic repository for creators. Premium video packs, curated study notes, and the future of workflow.
+            <p className="spring-up" style={{ animationDelay: "0.2s", color: "var(--muted)", maxWidth: "600px", margin: "0 auto 60px", fontSize: "1.3rem", fontWeight: 400, lineHeight: 1.6 }}>
+              A living archive of digital assets. Experience a fluid interface designed for the next generation of creators.
             </p>
-            <button className="spring-up btn-art" style={{ animationDelay: "0.3s" }} onClick={() => setPage("browse")}>ENTER THE HUB</button>
+            <button className="spring-up btn-art" style={{ animationDelay: "0.4s" }} onClick={() => setPage("browse")}>EXPLORE ARCHIVE</button>
           </main>
         )}
 
         {/* BROWSE */}
         {page === "browse" && (
-          <main style={{ maxWidth: "1300px", margin: "0 auto", padding: "20px 24px" }}>
-            <div className="spring-up" style={{ textAlign: "center", marginBottom: "60px" }}>
-              <h2 style={{ fontFamily: "Syne", fontSize: "3.5rem", marginBottom: "30px", letterSpacing: "-0.04em" }}>Explore</h2>
+          <main style={{ maxWidth: "1400px", margin: "0 auto", padding: "20px 24px" }}>
+            <div className="spring-up" style={{ textAlign: "center", marginBottom: "80px" }}>
+              <h2 style={{ fontFamily: "Syne", fontSize: "4rem", marginBottom: "40px", letterSpacing: "-0.05em" }}>Archive</h2>
               <input 
                 className="search-art" 
-                placeholder="Find your next spark..." 
+                placeholder="Query the database..." 
                 onChange={e => setSearch(e.target.value)}
               />
-              <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", justifyContent: "center", marginTop: "30px" }}>
-                <button className={`pill-art ${activeCat === 'all' ? 'active' : ''}`} onClick={() => setActiveCat("all")}>Everything</button>
+              <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", justifyContent: "center", marginTop: "40px" }}>
+                <button className={`pill-art ${activeCat === 'all' ? 'active' : ''}`} onClick={() => setActiveCat("all")}>All Units</button>
                 {CATEGORIES.map(c => (
                   <button key={c.id} className={`pill-art ${activeCat === c.id ? 'active' : ''}`} onClick={() => setActiveCat(c.id)}>
                     {c.icon} {c.label}
@@ -231,16 +224,16 @@ export default function App() {
 
             <div className="grid-art">
               {filtered.map((r, i) => (
-                <div key={r.id} className="glass card-art spring-up" style={{ animationDelay: `${i * 0.1}s`, overflow: "hidden" }} onClick={() => { setDetailItem(r); setPage("detail"); }}>
-                  <div style={{ height: "200px", background: `linear-gradient(180deg, ${CATEGORIES.find(c => c.id === r.category)?.color}10, transparent)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4.5rem" }}>
+                <div key={r.id} className="glass card-art spring-up" style={{ animationDelay: `${i * 0.12}s`, overflow: "hidden" }} onClick={() => { setDetailItem(r); setPage("detail"); }}>
+                  <div style={{ height: "240px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem" }}>
                     {CATEGORIES.find(c => c.id === r.category)?.icon}
                   </div>
-                  <div style={{ padding: "30px" }}>
-                    <p style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>{r.category}</p>
-                    <h3 style={{ fontSize: "1.3rem", fontFamily: "Syne", fontWeight: 800 }}>{r.title}</h3>
-                    <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                       <span style={{ fontSize: "1rem", color: "#38ef7d", fontWeight: 800 }}>{r.price}</span>
-                       <span style={{ fontSize: "0.8rem", opacity: 0.4 }}>{r.downloads || 0} units</span>
+                  <div style={{ padding: "35px" }}>
+                    <p style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "3px", marginBottom: "15px" }}>{r.category}</p>
+                    <h3 style={{ fontSize: "1.5rem", fontFamily: "Syne", fontWeight: 800 }}>{r.title}</h3>
+                    <div style={{ marginTop: "25px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                       <span style={{ fontSize: "1.1rem", color: "#38ef7d", fontWeight: 800 }}>{r.price}</span>
+                       <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--glass)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>⬇️</div>
                     </div>
                   </div>
                 </div>
@@ -251,12 +244,12 @@ export default function App() {
 
         {/* DETAIL */}
         {page === "detail" && detailItem && (
-          <main className="spring-up" style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 24px" }}>
-            <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 800, marginBottom: "40px", fontFamily: "Syne", letterSpacing: "2px" }}>← BACK TO GALLERY</button>
-            <div className="glass" style={{ padding: "60px" }}>
-               <h1 style={{ fontFamily: "Syne", fontSize: "clamp(2.5rem, 6vw, 4rem)", marginBottom: "30px", fontWeight: 800, lineHeight: 0.9 }}>{detailItem.title}</h1>
-               <p style={{ color: "var(--muted)", lineHeight: 1.8, fontSize: "1.3rem", marginBottom: "50px" }}>{detailItem.description}</p>
-               <a href={detailItem.download_link} target="_blank" rel="noreferrer" className="btn-art" style={{ textDecoration: "none", display: "block", textAlign: "center" }}>COLLECT ASSET</a>
+          <main className="spring-up" style={{ maxWidth: "1000px", margin: "0 auto", padding: "60px 24px" }}>
+            <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 800, marginBottom: "50px", fontFamily: "Syne", letterSpacing: "3px" }}>← RETURN</button>
+            <div className="glass" style={{ padding: "80px" }}>
+               <h1 style={{ fontFamily: "Syne", fontSize: "clamp(3rem, 7vw, 5rem)", marginBottom: "40px", fontWeight: 800, lineHeight: 0.85 }}>{detailItem.title}</h1>
+               <p style={{ color: "var(--muted)", lineHeight: 1.8, fontSize: "1.4rem", marginBottom: "60px" }}>{detailItem.description}</p>
+               <a href={detailItem.download_link} target="_blank" rel="noreferrer" className="btn-art" style={{ textDecoration: "none", display: "block", textAlign: "center" }}>DOWNLOAD ASSET</a>
             </div>
           </main>
         )}
@@ -273,16 +266,16 @@ export default function App() {
         )}
       </div>
 
-      <footer style={{ marginTop: "100px", padding: "100px 24px", textAlign: "center", background: "var(--glass)" }}>
-        <h2 style={{ fontFamily: "Syne", fontSize: "1.5rem", fontWeight: 800, marginBottom: "15px" }}>CreatorHub</h2>
-        <p style={{ opacity: 0.3, fontSize: "0.9rem", letterSpacing: "1px" }}>EST. 2026 • BUILT FOR INFINITY</p>
+      <footer style={{ marginTop: "150px", padding: "120px 24px", textAlign: "center", borderTop: "1px solid var(--border)" }}>
+        <h2 style={{ fontFamily: "Syne", fontSize: "1.8rem", fontWeight: 800, marginBottom: "20px" }}>CreatorHub</h2>
+        <p style={{ opacity: 0.3, fontSize: "1rem", letterSpacing: "2px" }}>OPERATING ON SUPABASE CLOUD • 2026</p>
       </footer>
     </>
   );
 }
 
 // ─── ADMIN SUBSYSTEMS ────────────────────────────────────────────────────────
-function AdminAuth({ onLogin, accent }) {
+function AdminAuth({ onLogin }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const handleAuth = async () => {
@@ -291,14 +284,14 @@ function AdminAuth({ onLogin, accent }) {
       body: JSON.stringify({ email, password: pass })
     });
     const d = await r.json();
-    if (r.ok) onLogin(d); else alert("Invalid Signature");
+    if (r.ok) onLogin(d); else alert("Signature Rejected");
   };
   return (
-    <div className="glass spring-up" style={{ maxWidth: "450px", margin: "0 auto", padding: "50px", textAlign: "center" }}>
-      <h3 style={{ fontFamily: "Syne", fontSize: "1.5rem", marginBottom: "40px" }}>Vault Access</h3>
-      <input placeholder="Admin ID" className="search-art" style={{ marginBottom: "15px" }} onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Key" className="search-art" style={{ marginBottom: "30px" }} onChange={e => setPass(e.target.value)} />
-      <button className="btn-art" style={{ width: "100%" }} onClick={handleAuth}>UNLOCK</button>
+    <div className="glass spring-up" style={{ maxWidth: "500px", margin: "0 auto", padding: "60px", textAlign: "center" }}>
+      <h3 style={{ fontFamily: "Syne", fontSize: "2rem", marginBottom: "50px" }}>System Access</h3>
+      <input placeholder="Admin ID" className="search-art" style={{ marginBottom: "20px" }} onChange={e => setEmail(e.target.value)} />
+      <input type="password" placeholder="Passkey" className="search-art" style={{ marginBottom: "40px" }} onChange={e => setPass(e.target.value)} />
+      <button className="btn-art" style={{ width: "100%" }} onClick={handleAuth}>INITIATE</button>
     </div>
   );
 }
@@ -315,24 +308,24 @@ function AdminDashboard({ resources, token, onUpdate, onLogout }) {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "40px" }}>
-      <div className="glass" style={{ padding: "40px" }}>
-        <h3 style={{ fontFamily: "Syne", marginBottom: "30px" }}>{editId ? "Modify" : "Mint"} Asset</h3>
-        <input placeholder="Title" value={f.title} className="search-art" style={{ marginBottom: "15px" }} onChange={e => setF({...f, title: e.target.value})} />
-        <textarea placeholder="Description" value={f.description} className="search-art" style={{ height: "150px", marginBottom: "15px", resize: "none" }} onChange={e => setF({...f, description: e.target.value})} />
-        <input placeholder="Source Link" value={f.download_link} className="search-art" style={{ marginBottom: "20px" }} onChange={e => setF({...f, download_link: e.target.value})} />
-        <button className="btn-art" style={{ width: "100%" }} onClick={saveItem}>{editId ? "UPDATE" : "PUBLISH"}</button>
-        <button onClick={onLogout} style={{ marginTop: "30px", opacity: 0.5, background: "none", border: "none", color: "var(--text)", cursor: "pointer", fontWeight: 800 }}>LOGOUT</button>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "60px" }}>
+      <div className="glass" style={{ padding: "50px" }}>
+        <h3 style={{ fontFamily: "Syne", marginBottom: "40px" }}>{editId ? "Update" : "Add"} Entry</h3>
+        <input placeholder="Title" value={f.title} className="search-art" style={{ marginBottom: "20px" }} onChange={e => setF({...f, title: e.target.value})} />
+        <textarea placeholder="Metadata / Description" value={f.description} className="search-art" style={{ height: "180px", marginBottom: "20px", resize: "none" }} onChange={e => setF({...f, description: e.target.value})} />
+        <input placeholder="Cloud Source URL" value={f.download_link} className="search-art" style={{ marginBottom: "30px" }} onChange={e => setF({...f, download_link: e.target.value})} />
+        <button className="btn-art" style={{ width: "100%" }} onClick={saveItem}>{editId ? "OVERWRITE" : "DEPLOY"}</button>
+        <button onClick={onLogout} style={{ marginTop: "40px", opacity: 0.5, background: "none", border: "none", color: "var(--text)", cursor: "pointer", fontWeight: 800, fontSize: "0.8rem", letterSpacing: "2px" }}>TERMINATE SESSION</button>
       </div>
       
-      <div className="glass" style={{ padding: "40px" }}>
-        <h3 style={{ fontFamily: "Syne", marginBottom: "30px" }}>Live Inventory</h3>
+      <div className="glass" style={{ padding: "50px" }}>
+        <h3 style={{ fontFamily: "Syne", marginBottom: "40px" }}>Cloud Sync</h3>
         {resources.map(r => (
-          <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "20px 0", borderBottom: "1px solid var(--border)" }}>
-            <span style={{ fontWeight: 800, fontSize: "1.1rem" }}>{r.title}</span>
-            <div style={{ display: "flex", gap: "20px" }}>
+          <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "25px 0", borderBottom: "1px solid var(--border)" }}>
+            <span style={{ fontWeight: 800, fontSize: "1.2rem" }}>{r.title}</span>
+            <div style={{ display: "flex", gap: "30px" }}>
               <button onClick={() => { setF(r); setEditId(r.id); }} style={{ color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>EDIT</button>
-              <button onClick={async () => { if(confirm("Destroy?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: "red", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>DEL</button>
+              <button onClick={async () => { if(confirm("Purge from cloud?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: "red", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>DELETE</button>
             </div>
           </div>
         ))}
