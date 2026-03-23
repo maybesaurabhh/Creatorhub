@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://umnytptisqdvesspzlqd.supabase.co";
@@ -25,7 +25,7 @@ const db = {
     const url = id ? `${SUPABASE_URL}/rest/v1/resources?id=eq.${id}` : `${SUPABASE_URL}/rest/v1/resources`;
     await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`, Prefer: "return=minimal" },
+      headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` },
       body: JSON.stringify(data)
     });
   },
@@ -37,25 +37,13 @@ const db = {
   }
 };
 
-// ─── UI COMPONENTS ───────────────────────────────────────────────────────────
-const formatNum = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n;
-
-function Thumb({ resource, size = "full" }) {
-  const cat = CATEGORIES.find((c) => c.id === resource.category) || CATEGORIES[0];
-  return (
-    <div style={{ width: "100%", paddingBottom: size === "full" ? "56.25%" : "60%", position: "relative", borderRadius: "12px", overflow: "hidden", background: `linear-gradient(135deg, ${cat.color}22 0%, ${cat.color}08 100%)`, border: `1px solid ${cat.color}33` }}>
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px" }}>
-        <span style={{ fontSize: size === "full" ? "3.5rem" : "2.5rem" }}>{cat.icon}</span>
-        <span style={{ fontSize: "0.6rem", fontWeight: 700, color: cat.color, textTransform: "uppercase" }}>{resource.category}</span>
-      </div>
-    </div>
-  );
-}
-
+// ─── STYLES ──────────────────────────────────────────────────────────────────
 const GlobalStyle = ({ dark }) => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
+    
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     :root {
       --bg: ${dark ? "#0a0a0f" : "#f4f3ee"};
       --text: ${dark ? "#f0ede8" : "#1a1814"};
@@ -63,11 +51,59 @@ const GlobalStyle = ({ dark }) => (
       --accent: #ff6b35;
       --border: ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"};
       --surface: ${dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.72)"};
+      --surface2: ${dark ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.9)"};
     }
-    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; transition: 0.4s; }
+
+    body { 
+      background: var(--bg); 
+      color: var(--text); 
+      font-family: 'DM Sans', sans-serif; 
+      transition: background 0.4s;
+      overflow-x: hidden;
+    }
+
     .glass { background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 14px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .btn-primary { background: linear-gradient(135deg, #ff6b35, #ff4500); color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #ff6b35, #ffd200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up { animation: fadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+
+    .lift { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
+    .lift:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,107,53,0.15); }
+
+    .btn-primary { 
+      background: linear-gradient(135deg, #ff6b35, #ff4500); 
+      color: #fff; border: none; padding: 12px 28px; 
+      border-radius: 10px; font-family: 'Syne', sans-serif; 
+      font-weight: 800; cursor: pointer; transition: 0.2s;
+    }
+    .btn-primary:hover { transform: scale(1.05); }
+
+    .search-input {
+      width: 100%; max-width: 500px; padding: 14px 20px;
+      border-radius: 12px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text);
+      outline: none; transition: 0.2s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    .filter-pill {
+      padding: 8px 18px; border-radius: 25px; border: 1px solid var(--border);
+      background: var(--surface); cursor: pointer; font-size: 0.85rem;
+      font-weight: 600; transition: 0.2s; color: var(--text);
+    }
+    .filter-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
   `}</style>
 );
 
@@ -96,95 +132,108 @@ export default function App() {
     <>
       <GlobalStyle dark={dark} />
       
-      {/* Navbar */}
-      <nav style={{ position: "fixed", top: 0, width: "100%", zHeight: 100, padding: "15px 24px", background: "var(--bg)", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 100 }}>
-        <h2 onClick={() => setPage("home")} style={{ cursor: "pointer", fontFamily: "Syne" }}>Creator<span style={{ color: "var(--accent)" }}>Hub</span></h2>
-        <div style={{ display: "flex", gap: 20 }}>
-          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", fontWeight: 600 }}>Browse</button>
-          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", cursor: "pointer" }}>{dark ? "☀️" : "🌙"}</button>
+      {/* Navigation */}
+      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000, padding: "18px 24px", background: "var(--bg)", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div onClick={() => setPage("home")} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.2rem" }}>
+          Creator<span className="gradient-text">Hub</span>
+        </div>
+        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", fontWeight: 700, fontFamily: "Syne", fontSize: "0.9rem" }}>BROWSE</button>
+          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem" }}>{dark ? "☀️" : "🌙"}</button>
         </div>
       </nav>
 
-      <div style={{ paddingTop: 100, paddingBottom: 100, minHeight: "80vh" }}>
+      <div style={{ paddingTop: 100 }}>
         
+        {/* HOME PAGE */}
         {page === "home" && (
-          <div style={{ maxWidth: 1200, margin: "0 auto", textAlign: "center", padding: "0 20px" }}>
-            <h1 style={{ fontSize: "3.5rem", fontFamily: "Syne", marginBottom: 20 }}>Free Resources for Creators</h1>
-            <p style={{ color: "var(--muted)", marginBottom: 40 }}>Download video packs, study notes, and templates instantly.</p>
-            <button className="btn-primary" onClick={() => setPage("browse")}>Start Browsing →</button>
+          <div style={{ maxWidth: 1200, margin: "0 auto", textAlign: "center", padding: "80px 20px" }}>
+            <div className="fade-up glass" style={{ display: "inline-block", padding: "6px 16px", borderRadius: 30, fontSize: "0.8rem", fontWeight: 700, marginBottom: 20 }}>
+              🚀 1,200+ Resources for FREE
+            </div>
+            <h1 className="fade-up delay-1" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", fontFamily: "Syne", fontWeight: 800, lineHeight: 1.1, marginBottom: 20 }}>
+              The Ultimate Hub for <br/><span className="gradient-text">Creators & Students</span>
+            </h1>
+            <p className="fade-up delay-2" style={{ color: "var(--muted)", maxWidth: 600, margin: "0 auto 40px", fontSize: "1.1rem" }}>
+              High-quality video packs, study materials, and productivity templates delivered instantly via Supabase.
+            </p>
+            <button className="fade-up delay-2 btn-primary" onClick={() => setPage("browse")}>EXPLORE RESOURCES</button>
           </div>
         )}
 
+        {/* BROWSE PAGE */}
         {page === "browse" && (
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-            <div style={{ marginBottom: 40, display: "flex", flexDirection: "column", gap: 20, alignItems: "center" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px" }}>
+            <div style={{ textAlign: "center", marginBottom: 50 }}>
+              <h2 style={{ fontFamily: "Syne", fontSize: "2.5rem", marginBottom: 20 }}>Browse Library</h2>
               <input 
-                placeholder="Search resources..." 
-                style={{ width: "100%", maxWidth: 500, padding: 12, borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)" }}
+                className="search-input" 
+                placeholder="Search packs, templates, tags..." 
                 onChange={e => setSearch(e.target.value)}
               />
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button onClick={() => setCatFilter("all")} style={{ padding: "8px 16px", borderRadius: 20, border: "1px solid var(--border)", background: catFilter === "all" ? "var(--accent)" : "none" }}>All</button>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 25 }}>
+                <button className={`filter-pill ${catFilter === 'all' ? 'active' : ''}`} onClick={() => setCatFilter("all")}>All</button>
                 {CATEGORIES.map(c => (
-                  <button key={c.id} onClick={() => setCatFilter(c.id)} style={{ padding: "8px 16px", borderRadius: 20, border: "1px solid var(--border)", background: catFilter === c.id ? "var(--accent)" : "none" }}>{c.icon} {c.label}</button>
+                  <button key={c.id} className={`filter-pill ${catFilter === c.id ? 'active' : ''}`} onClick={() => setCatFilter(c.id)}>
+                    {c.icon} {c.label}
+                  </button>
                 ))}
               </div>
             </div>
 
-            {filtered.length === 0 ? (
-              <p style={{ textAlign: "center", color: "var(--muted)" }}>No resources found. Try adding some in Admin!</p>
-            ) : (
-              <div className="grid-3">
-                {filtered.map(r => (
-                  <div key={r.id} className="glass" style={{ cursor: "pointer", overflow: "hidden" }} onClick={() => { setDetailRes(r); setPage("detail"); }}>
-                    <Thumb resource={r} size="card" />
-                    <div style={{ padding: 15 }}>
-                      <h3 style={{ fontSize: "1rem" }}>{r.title}</h3>
-                      <p style={{ fontSize: "0.8rem", color: "var(--muted)" }}>{r.price} • ⬇️ {formatNum(r.downloads || 0)}</p>
+            <div className="grid-3">
+              {filtered.map((r, i) => (
+                <div key={r.id} className="glass lift fade-up" style={{ animationDelay: `${i * 0.05}s`, overflow: "hidden" }} onClick={() => { setDetailRes(r); setPage("detail"); }}>
+                  <div style={{ height: 160, background: `linear-gradient(45deg, ${CATEGORIES.find(c => c.id === r.category)?.color}33, transparent)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>
+                    {CATEGORIES.find(c => c.id === r.category)?.icon}
+                  </div>
+                  <div style={{ padding: 20 }}>
+                    <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", marginBottom: 5 }}>{r.category}</div>
+                    <h3 style={{ fontSize: "1.1rem", fontFamily: "Syne" }}>{r.title}</h3>
+                    <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                       <span style={{ fontSize: "0.8rem", color: "#38ef7d", fontWeight: 700 }}>{r.price}</span>
+                       <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>⬇️ {r.downloads || 0}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
+        {/* DETAIL PAGE */}
         {page === "detail" && detailRes && (
-          <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
-            <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", marginBottom: 20 }}>← Back to Browse</button>
-            <Thumb resource={detailRes} />
-            <h1 style={{ marginTop: 20, fontFamily: "Syne" }}>{detailRes.title}</h1>
-            <p style={{ margin: "20px 0", lineHeight: 1.6 }}>{detailRes.description}</p>
-            <a href={detailRes.download_link} className="btn-primary" style={{ textDecoration: "none", display: "inline-block" }}>Download Now</a>
+          <div className="fade-up" style={{ maxWidth: 800, margin: "0 auto", padding: 40 }}>
+            <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 800, marginBottom: 30 }}>← BACK TO LIBRARY</button>
+            <div className="glass" style={{ padding: 40 }}>
+               <h1 style={{ fontFamily: "Syne", fontSize: "2.5rem", marginBottom: 15 }}>{detailRes.title}</h1>
+               <p style={{ color: "var(--muted)", lineHeight: 1.8, fontSize: "1.1rem", marginBottom: 30 }}>{detailRes.description}</p>
+               <a href={detailRes.download_link} className="btn-primary" style={{ textDecoration: "none", display: "inline-block" }}>DOWNLOAD NOW</a>
+            </div>
           </div>
         )}
 
+        {/* ADMIN PAGE */}
         {page === "admin" && (
           <div style={{ maxWidth: 1000, margin: "0 auto", padding: 24 }}>
             {!session ? (
               <AdminLogin onLogin={(s) => { setSession(s); localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }} />
             ) : (
-              <AdminPanel 
-                resources={resources} 
-                token={session.access_token} 
-                onUpdate={refresh} 
-                onLogout={() => { setSession(null); localStorage.removeItem(SESSION_KEY); }} 
-              />
+              <AdminPanel resources={resources} token={session.access_token} onUpdate={refresh} onLogout={() => { setSession(null); localStorage.removeItem(SESSION_KEY); }} />
             )}
           </div>
         )}
-
       </div>
 
-      <footer style={{ padding: 40, textAlign: "center", borderTop: "1px solid var(--border)" }}>
-        <p style={{ opacity: 0.5 }}>© 2026 CreatorHub</p>
+      <footer style={{ marginTop: 100, padding: 60, textAlign: "center", borderTop: "1px solid var(--border)" }}>
+        <p style={{ opacity: 0.4, fontSize: "0.9rem" }}>© 2026 CreatorHub — All Assets Provided Free</p>
         <button onClick={() => setPage("admin")} style={{ opacity: 0, cursor: "default" }}>admin</button>
       </footer>
     </>
   );
 }
 
-// ─── ADMIN PANEL COMPONENTS ──────────────────────────────────────────────────
+// ─── ADMIN HELPERS ───────────────────────────────────────────────────────────
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -194,14 +243,14 @@ function AdminLogin({ onLogin }) {
       body: JSON.stringify({ email, password: pass })
     });
     const d = await r.json();
-    if (r.ok) onLogin(d); else alert("Login Failed");
+    if (r.ok) onLogin(d); else alert("Invalid Credentials");
   };
   return (
-    <div className="glass" style={{ maxWidth: 400, margin: "0 auto", padding: 30 }}>
-      <h3>Admin Login</h3>
-      <input placeholder="Email" style={{ width: "100%", padding: 10, margin: "10px 0" }} onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" style={{ width: "100%", padding: 10, margin: "10px 0" }} onChange={e => setPass(e.target.value)} />
-      <button className="btn-primary" style={{ width: "100%" }} onClick={handle}>Login</button>
+    <div className="glass" style={{ maxWidth: 400, margin: "0 auto", padding: 40, textAlign: "center" }}>
+      <h3 style={{ fontFamily: "Syne", marginBottom: 20 }}>Admin Secure Access</h3>
+      <input placeholder="Email" className="search-input" style={{ marginBottom: 15 }} onChange={e => setEmail(e.target.value)} />
+      <input type="password" placeholder="Password" className="search-input" style={{ marginBottom: 20 }} onChange={e => setPass(e.target.value)} />
+      <button className="btn-primary" style={{ width: "100%" }} onClick={handle}>SIGN IN</button>
     </div>
   );
 }
@@ -218,310 +267,26 @@ function AdminPanel({ resources, token, onUpdate, onLogout }) {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 30 }}>
-      <div className="glass" style={{ padding: 20 }}>
-        <h3>{editId ? "Edit" : "Add"} Resource</h3>
-        <input placeholder="Title" value={form.title} style={{ width: "100%", padding: 8, margin: "10px 0" }} onChange={e => setForm({...form, title: e.target.value})} />
-        <textarea placeholder="Description" value={form.description} style={{ width: "100%", padding: 8, margin: "10px 0" }} onChange={e => setForm({...form, description: e.target.value})} />
-        <input placeholder="Download URL" value={form.download_link} style={{ width: "100%", padding: 8, margin: "10px 0" }} onChange={e => setForm({...form, download_link: e.target.value})} />
-        <button className="btn-primary" onClick={save}>{editId ? "Update" : "Add Resource"}</button>
-        <button onClick={onLogout} style={{ display: "block", marginTop: 20, color: "red", background: "none", border: "none", cursor: "pointer" }}>Logout</button>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 30 }}>
+      <div className="glass" style={{ padding: 25 }}>
+        <h3 style={{ fontFamily: "Syne", marginBottom: 20 }}>{editId ? "Update" : "Add"} Resource</h3>
+        <input placeholder="Title" value={form.title} className="search-input" style={{ marginBottom: 10 }} onChange={e => setForm({...form, title: e.target.value})} />
+        <textarea placeholder="Description" value={form.description} className="search-input" style={{ height: 100, marginBottom: 10 }} onChange={e => setForm({...form, description: e.target.value})} />
+        <input placeholder="Download URL" value={form.download_link} className="search-input" style={{ marginBottom: 10 }} onChange={e => setForm({...form, download_link: e.target.value})} />
+        <select className="search-input" value={form.category} style={{ marginBottom: 20 }} onChange={e => setForm({...form, category: e.target.value})}>
+           {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+        </select>
+        <button className="btn-primary" style={{ width: "100%" }} onClick={save}>{editId ? "UPDATE" : "PUBLISH"}</button>
+        <button onClick={onLogout} style={{ marginTop: 20, background: "none", border: "none", color: "red", cursor: "pointer", fontWeight: 700 }}>LOGOUT</button>
       </div>
       <div>
+        <h3 style={{ fontFamily: "Syne", marginBottom: 20 }}>Manage Resources</h3>
         {resources.map(r => (
-          <div key={r.id} className="glass" style={{ padding: 10, marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
-            <span>{r.title}</span>
-            <div>
-              <button onClick={() => { setForm(r); setEditId(r.id); }}>Edit</button>
-              <button onClick={async () => { if(confirm("Del?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: "red", marginLeft: 10 }}>Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-    });
-    return r.ok ? r.json() : null;
-  },
-};
-
-// ─── API HANDLERS ───────────────────────────────────────────────────────────
-const db = {
-  async getAll() {
-    const r = await fetch(`${REST}?select=*&order=created_at.desc`, {
-      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }
-    });
-    return r.json();
-  },
-  async upsert(data, token, id = null) {
-    const method = id ? "PATCH" : "POST";
-    const url = id ? `${REST}?id=eq.${id}` : REST;
-    const r = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON,
-        Authorization: `Bearer ${token}`,
-        Prefer: "return=representation"
-      },
-      body: JSON.stringify(data)
-    });
-    return r.json();
-  },
-  async delete(id, token) {
-    await fetch(`${REST}?id=eq.${id}`, {
-      method: "DELETE",
-      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
-    });
-  }
-};
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-const formatNum = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n;
-
-// ─── UI COMPONENTS (THUMB, STYLES) ───────────────────────────────────────────
-function Thumb({ resource, size = "full" }) {
-  const catColor = CATEGORIES.find((c) => c.id === resource.category)?.color || "#ff6b35";
-  const catIcon  = CATEGORIES.find((c) => c.id === resource.category)?.icon  || "📦";
-  return (
-    <div style={{
-      width: "100%", paddingBottom: size === "full" ? "56.25%" : "60%",
-      position: "relative", borderRadius: "12px", overflow: "hidden",
-      background: `linear-gradient(135deg, ${catColor}22 0%, ${catColor}08 100%)`,
-      border: `1px solid ${catColor}33`,
-    }}>
-      <div style={{
-        position: "absolute", inset: 0, display: "flex",
-        alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px",
-      }}>
-        <span style={{ fontSize: size === "full" ? "3.5rem" : "2.5rem" }}>{catIcon}</span>
-        <span style={{
-          fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.12em",
-          color: catColor, textTransform: "uppercase", opacity: 0.8,
-        }}>{resource.category}</span>
-      </div>
-      {(resource.premium) && (
-        <span style={{
-          position: "absolute", top: "10px", right: "10px",
-          background: "linear-gradient(135deg,#f7971e,#ffd200)",
-          color: "#000", fontSize: "0.6rem", fontWeight: 800,
-          padding: "3px 8px", borderRadius: "20px", letterSpacing: "0.1em",
-        }}>PREMIUM</span>
-      )}
-    </div>
-  );
-}
-
-const GlobalStyle = ({ dark }) => (
-  <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: ${dark ? "#0a0a0f" : "#f4f3ee"};
-      --bg2: ${dark ? "#111118" : "#ede8df"};
-      --text: ${dark ? "#f0ede8" : "#1a1814"};
-      --muted: ${dark ? "#7a7a8a" : "#7a7670"};
-      --accent: #ff6b35;
-      --border: ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"};
-      --surface: ${dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.72)"};
-      --surface2: ${dark ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.9)"};
-      --radius: 14px;
-    }
-    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; transition: 0.4s; overflow-x: hidden; }
-    .glass { background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius); }
-    .gradient-text { background: linear-gradient(135deg, #ff6b35, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .btn-primary { background: linear-gradient(135deg, #ff6b35, #ff4500); color: #fff; border: none; border-radius: 10px; padding: 12px 24px; font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; }
-    .btn-download { background: linear-gradient(135deg,#11998e,#38ef7d); color: #000; border: none; border-radius: 10px; padding: 10px 20px; font-family: 'Syne', sans-serif; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 0.7rem; color: var(--muted); }
-  `}</style>
-);
-
-// ─── PAGE COMPONENTS ─────────────────────────────────────────────────────────
-
-function Navbar({ dark, toggleDark, page, setPage }) {
-  return (
-    <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: "10px 24px", background: "var(--bg)", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-        <div style={{ width: 32, height: 32, borderRadius: "8px", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900 }}>C</div>
-        <span style={{ fontFamily: "Syne", fontWeight: 800 }}>Creator<span className="gradient-text">Hub</span></span>
-      </button>
-      <div style={{ display: "flex", gap: 15, alignItems: "center" }}>
-        <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", fontWeight: 600 }}>Browse</button>
-        <button onClick={toggleDark} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", padding: "5px 10px", cursor: "pointer" }}>{dark ? "☀️" : "🌙"}</button>
-      </div>
-    </nav>
-  );
-}
-
-function ResourceCard({ resource, onClick }) {
-  return (
-    <div className="glass" onClick={() => onClick(resource)} style={{ cursor: "pointer", overflow: "hidden" }}>
-      <Thumb resource={resource} size="card" />
-      <div style={{ padding: 15 }}>
-        <h3 style={{ fontSize: "1rem", marginBottom: 5 }}>{resource.title}</h3>
-        <p style={{ fontSize: "0.8rem", color: "var(--muted)", height: "40px", overflow: "hidden" }}>{resource.description}</p>
-        <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "0.7rem", color: "var(--accent)" }}>{resource.price}</span>
-          <span style={{ fontSize: "0.7rem" }}>⬇️ {formatNum(resource.downloads || 0)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── MAIN APP ────────────────────────────────────────────────────────────────
-export default function App() {
-  const [dark, setDark] = useState(true);
-  const [page, setPage] = useState("home");
-  const [resources, setResources] = useState([]);
-  const [detailResource, setDetailRes] = useState(null);
-  const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Load Data
-  const refreshData = async () => {
-    const data = await db.getAll();
-    setResources(data);
-  };
-
-  useEffect(() => {
-    refreshData().then(() => setLoading(false));
-    const saved = localStorage.getItem(SESSION_KEY);
-    if (saved) setSession(JSON.parse(saved));
-  }, []);
-
-  const handleAdminAction = async () => {
-    await refreshData();
-  };
-
-  return (
-    <>
-      <GlobalStyle dark={dark} />
-      <Navbar dark={dark} toggleDark={() => setDark(!dark)} page={page} setPage={setPage} />
-      
-      <div style={{ paddingTop: 80, minHeight: "100vh" }}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 100 }}>Loading Resources...</div>
-        ) : (
-          <>
-            {page === "home" && (
-              <main style={{ maxWidth: 1200, margin: "0 auto", padding: 24 }}>
-                <h1 style={{ fontSize: "3rem", textAlign: "center", marginBottom: 40, fontFamily: "Syne" }}>
-                  Free Resources for <span className="gradient-text">Creators</span>
-                </h1>
-                <div className="grid-3">
-                  {resources.slice(0, 6).map(r => (
-                    <ResourceCard key={r.id} resource={r} onClick={(res) => { setDetailRes(res); setPage("detail"); }} />
-                  ))}
-                </div>
-              </main>
-            )}
-
-            {page === "browse" && (
-              <main style={{ maxWidth: 1200, margin: "0 auto", padding: 24 }}>
-                <div className="grid-3">
-                  {resources.map(r => (
-                    <ResourceCard key={r.id} resource={r} onClick={(res) => { setDetailRes(res); setPage("detail"); }} />
-                  ))}
-                </div>
-              </main>
-            )}
-
-            {page === "detail" && (
-               <main style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
-                 <button onClick={() => setPage("browse")} style={{ marginBottom: 20, background: "none", border: "1px solid var(--border)", color: "var(--text)", padding: "5px 10px", borderRadius: 5 }}>← Back</button>
-                 <Thumb resource={detailResource} />
-                 <h1 style={{ marginTop: 20 }}>{detailResource.title}</h1>
-                 <p style={{ color: "var(--muted)", margin: "20px 0" }}>{detailResource.description}</p>
-                 <a href={detailResource.download_link} className="btn-download" style={{ textDecoration: "none", width: "fit-content" }}>Download Now</a>
-               </main>
-            )}
-
-            {page === "admin" && (
-              <AdminGate session={session} setSession={setSession}>
-                <AdminPage 
-                  resources={resources} 
-                  onUpdate={handleAdminAction} 
-                  session={session} 
-                  setPage={setPage}
-                />
-              </AdminGate>
-            )}
-          </>
-        )}
-      </div>
-
-      <footer style={{ textAlign: "center", padding: 40, borderTop: "1px solid var(--border)", marginTop: 40 }}>
-        <p style={{ opacity: 0.5 }}>© 2026 CreatorHub</p>
-        <button onClick={() => setPage("admin")} style={{ opacity: 0, cursor: "default" }}>admin</button>
-      </footer>
-    </>
-  );
-}
-
-// ─── ADMIN COMPONENTS ────────────────────────────────────────────────────────
-
-function AdminGate({ children, session, setSession }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const login = async () => {
-    try {
-      const data = await sbAuth.signIn(email, password);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(data));
-      setSession(data);
-    } catch (e) { alert(e.message); }
-  };
-
-  if (session) return children;
-
-  return (
-    <div style={{ maxWidth: 400, margin: "100px auto", padding: 40 }} className="glass">
-      <h2>Admin Login</h2>
-      <input type="email" placeholder="Email" style={{ width: "100%", padding: 10, margin: "10px 0" }} onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" style={{ width: "100%", padding: 10, margin: "10px 0" }} onChange={e => setPassword(e.target.value)} />
-      <button className="btn-primary" style={{ width: "100%" }} onClick={login}>Sign In</button>
-    </div>
-  );
-}
-
-function AdminPage({ resources, onUpdate, session, setPage }) {
-  const [form, setForm] = useState({ title: "", description: "", category: "video", price: "Free", download_link: "", tags: [] });
-  const [editingId, setEditingId] = useState(null);
-
-  const save = async () => {
-    const data = { ...form, tags: Array.isArray(form.tags) ? form.tags : form.tags.split(",").map(t => t.trim()) };
-    await db.upsert(data, session.access_token, editingId);
-    setForm({ title: "", description: "", category: "video", price: "Free", download_link: "", tags: [] });
-    setEditingId(null);
-    onUpdate();
-  };
-
-  const remove = async (id) => {
-    if (confirm("Delete?")) {
-      await db.delete(id, session.access_token);
-      onUpdate();
-    }
-  };
-
-  return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", padding: 24, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 30 }}>
-      <div className="glass" style={{ padding: 20, height: "fit-content" }}>
-        <h3>{editingId ? "Edit" : "Add New"} Resource</h3>
-        <input placeholder="Title" value={form.title} style={{ width: "100%", margin: "10px 0", padding: 8 }} onChange={e => setForm({ ...form, title: e.target.value })} />
-        <textarea placeholder="Description" value={form.description} style={{ width: "100%", margin: "10px 0", padding: 8 }} onChange={e => setForm({ ...form, description: e.target.value })} />
-        <input placeholder="Download URL" value={form.download_link} style={{ width: "100%", margin: "10px 0", padding: 8 }} onChange={e => setForm({ ...form, download_link: e.target.value })} />
-        <button className="btn-primary" onClick={save}>{editingId ? "Update" : "Create"}</button>
-      </div>
-      <div>
-        {resources.map(r => (
-          <div key={r.id} className="glass" style={{ padding: 15, marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
-            <span>{r.title}</span>
-            <div>
-              <button onClick={() => { setForm(r); setEditingId(r.id); }}>Edit</button>
-              <button onClick={() => remove(r.id)} style={{ color: "red", marginLeft: 10 }}>Delete</button>
+          <div key={r.id} className="glass" style={{ padding: "15px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontWeight: 600 }}>{r.title}</span>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => { setForm(r); setEditId(r.id); }} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer" }}>Edit</button>
+              <button onClick={async () => { if(confirm("Delete?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ background: "none", border: "none", color: "red", cursor: "pointer" }}>Del</button>
             </div>
           </div>
         ))}
