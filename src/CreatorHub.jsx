@@ -1458,10 +1458,37 @@ function Footer({ setPage }) {
 
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [dark, setDark]               = useState(true);
-  const [page, setPage]               = useState("home");
-  const [resources, setResources]     = useState(initialResources);
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem("ch_dark") !== "false"; } catch { return true; }
+  });
+
+  const [page, setPage] = useState("home");
   const [detailResource, setDetailRes] = useState(null);
+
+  // ── Resources persist in localStorage ──────────────────────────────────────
+  const [resources, setResources] = useState(() => {
+    try {
+      const saved = localStorage.getItem("ch_resources");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Merge: keep saved resources, add any new initialResources not already present
+        const savedIds = new Set(parsed.map(r => r.id));
+        const newDefaults = initialResources.filter(r => !savedIds.has(r.id));
+        return [...parsed, ...newDefaults];
+      }
+    } catch (_) {}
+    return initialResources;
+  });
+
+  // Save resources to localStorage whenever they change
+  useEffect(() => {
+    try { localStorage.setItem("ch_resources", JSON.stringify(resources)); } catch (_) {}
+  }, [resources]);
+
+  // Save dark mode preference
+  useEffect(() => {
+    try { localStorage.setItem("ch_dark", String(dark)); } catch (_) {}
+  }, [dark]);
 
   useEffect(() => { window.scrollTo(0, 0); }, [page]);
 
