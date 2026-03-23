@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 
 const SUPABASE_URL = "https://umnytptisqdvesspzlqd.supabase.co";
-const SUPABASE_ANON = "YOUR_ANON_KEY";
-
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....";
 // ─── EMPTY FORM ─────────────────
 const getEmpty = () => ({
   title: "",
