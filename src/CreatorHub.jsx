@@ -12,7 +12,7 @@ const CATEGORIES = [
   { id: "reels", label: "Reels", icon: "🎞️", color: "#a8edea" },
 ];
 
-// ─── API ENGINE ──────────────────────────────────────────────────────────────
+// ─── API ENGINE (DO NOT TOUCH) ───────────────────────────────────────────────
 const db = {
   async getAll() {
     try {
@@ -40,7 +40,7 @@ const db = {
   }
 };
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+// ─── STYLES (MOTION GRAPHICS ENGINE) ─────────────────────────────────────────
 const GlobalStyle = ({ dark, accent }) => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
@@ -50,95 +50,75 @@ const GlobalStyle = ({ dark, accent }) => (
     :root {
       --bg: ${dark ? "#050505" : "#fdfdfd"};
       --text: ${dark ? "#ffffff" : "#0a0a0a"};
-      --muted: ${dark ? "#808080" : "#606060"};
+      --muted: ${dark ? "rgba(128,128,128,0.6)" : "rgba(80,80,80,0.6)"};
       --accent: ${accent || "#ff6b35"};
-      --border: ${dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"};
-      --glass: ${dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.7)"};
+      --border: ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"};
+      --glass: ${dark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.7)"};
     }
 
     body { 
-      background: var(--bg); 
-      color: var(--text); 
+      background: var(--bg); color: var(--text); 
       font-family: 'DM Sans', sans-serif; 
-      transition: background 0.4s ease;
-      overflow-x: hidden;
+      transition: background 0.5s ease;
     }
 
-    .motion-bg {
+    /* 🌊 LIQUID MORPHING BACKGROUND */
+    .morph-bg {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      z-index: -1; overflow: hidden; background: var(--bg);
+      z-index: -1; filter: blur(80px); opacity: 0.4;
     }
-    .orb {
-      position: absolute; border-radius: 50%; filter: blur(120px);
-      opacity: ${dark ? 0.18 : 0.12};
-      animation: float 20s infinite alternate ease-in-out;
-    }
-    .orb-1 { width: 80vw; height: 80vw; background: var(--accent); top: -20%; left: -20%; }
-    .orb-2 { width: 70vw; height: 70vw; background: #4ecdc4; bottom: -10%; right: -10%; animation-delay: -5s; }
 
-    @keyframes float {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(10%, 15%) scale(1.1); }
+    .blob {
+      position: absolute; width: 500px; height: 500px;
+      background: var(--accent);
+      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+      animation: morph 12s linear infinite alternate;
+    }
+
+    @keyframes morph {
+      0% { border-radius: 40% 60% 70% 30% / 40% 40% 60% 50%; transform: translate(0,0) rotate(0deg); }
+      50% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: translate(20vw, 10vh) rotate(180deg); }
+      100% { border-radius: 30% 70% 30% 70% / 50% 70% 30% 50%; transform: translate(-10vw, 20vh) rotate(360deg); }
+    }
+
+    /* 🎢 PARALLAX SCROLL EFFECTS */
+    .parallax-item {
+      transition: transform 0.2s cubic-bezier(0,0,0,1);
+      will-change: transform;
     }
 
     .glass { 
-      background: var(--glass); 
-      backdrop-filter: blur(30px); 
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid var(--border); 
-      border-radius: 28px; 
-      padding: 24px;
+      background: var(--glass); backdrop-filter: blur(25px); 
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--border); border-radius: 30px; 
+      padding: 24px; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .spring-up { 
-      opacity: 0;
-      animation: springUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; 
+    .card-hover:hover {
+      transform: translateY(-12px) scale(1.02) !important;
+      border-color: var(--accent);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.3);
     }
 
-    @keyframes springUp {
-      from { opacity: 0; transform: translateY(50px); }
-      to { opacity: 1; transform: translateY(0); }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent), #ffd200);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
 
     .btn-art {
-      background: var(--accent);
-      color: #fff; border: none; padding: 16px 32px;
-      border-radius: 16px; font-family: 'Syne', sans-serif;
-      font-weight: 800; cursor: pointer; transition: 0.3s;
-      text-transform: uppercase; letter-spacing: 2px;
-      width: 100%;
+      background: var(--accent); color: #fff; border: none; padding: 18px 40px;
+      border-radius: 20px; font-family: 'Syne', sans-serif; font-weight: 800;
+      cursor: pointer; transition: 0.4s; text-transform: uppercase; letter-spacing: 2px;
     }
-    .btn-art:hover { transform: translateY(-3px); box-shadow: 0 15px 30px ${accent}40; }
-    .btn-art:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .input-art {
-      width: 100%; 
-      padding: 16px 20px; 
-      border-radius: 16px;
-      border: 1px solid var(--border); 
-      background: var(--glass);
-      color: var(--text); 
-      font-size: 1rem; 
-      outline: none; 
-      margin-bottom: 12px;
-      display: block;
-      font-family: inherit;
-    }
-    .input-art:focus { border-color: var(--accent); }
-
-    .pill-art {
-      padding: 10px 20px; border-radius: 40px; background: var(--glass);
-      border: 1px solid var(--border); color: var(--text); font-weight: 700;
-      font-family: 'Syne', sans-serif; cursor: pointer; white-space: nowrap;
-      transition: 0.3s;
-    }
-    .pill-art.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     .grid {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      width: 100%;
+      display: grid; gap: 30px; width: 100%;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    .input-art {
+      width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--border);
+      background: var(--glass); color: var(--text); outline: none; margin-bottom: 15px;
     }
   `}</style>
 );
@@ -153,78 +133,96 @@ export default function App() {
   const [activeCat, setActiveCat] = useState("all");
   const [detailItem, setDetailItem] = useState(null);
   const [session, setSession] = useState(() => JSON.parse(localStorage.getItem(SESSION_KEY)));
+  const [scrollY, setScrollY] = useState(0);
 
   const clickRef = useRef(0);
   const timerRef = useRef(null);
 
   const fetchAll = async () => { setResources(await db.getAll()); };
-  useEffect(() => { fetchAll(); }, []);
+  
+  useEffect(() => { 
+    fetchAll();
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleSecretAccess = () => {
     clickRef.current += 1;
-    if (clickRef.current >= 5) {
-      setPage("admin");
-      clickRef.current = 0;
-    }
+    if (clickRef.current >= 5) { setPage("admin"); clickRef.current = 0; }
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => { clickRef.current = 0; }, 1200);
   };
 
   const filtered = useMemo(() => {
     return resources.filter(r => {
-      const titleMatch = r.title?.toLowerCase().includes(search.toLowerCase());
-      const catMatch = activeCat === "all" || r.category === activeCat;
-      return titleMatch && catMatch;
+      const matchText = r.title?.toLowerCase().includes(search.toLowerCase());
+      const matchCat = activeCat === "all" || r.category === activeCat;
+      return matchText && matchCat;
     });
   }, [resources, search, activeCat]);
 
   return (
     <>
       <GlobalStyle dark={dark} accent={accent} />
-      <div className="motion-bg"><div className="orb orb-1"/><div className="orb orb-2"/></div>
       
-      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 2000, padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backdropFilter: "blur(20px)" }}>
-        <div onClick={handleSecretAccess} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.2rem" }}>
-          Creator<span style={{ color: "var(--accent)" }}>Hub</span>
+      {/* 🌊 MORPHING BG */}
+      <div className="morph-bg">
+        <div className="blob" style={{ left: '10%', top: '20%' }} />
+        <div className="blob" style={{ right: '5%', bottom: '10%', animationDelay: '-6s', background: '#4ecdc4' }} />
+      </div>
+
+      {/* Navbar */}
+      <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 2000, padding: "25px 6%", display: "flex", justifyContent: "space-between", alignItems: "center", backdropFilter: "blur(15px)" }}>
+        <div onClick={handleSecretAccess} style={{ cursor: "pointer", fontFamily: "Syne", fontWeight: 800, fontSize: "1.4rem" }}>
+          Creator<span className="gradient-text">Hub</span>
         </div>
-        <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, fontSize: "0.7rem", letterSpacing: "1px", cursor: "pointer", fontFamily: "Syne" }}>DASHBOARD</button>
-          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer" }}>{dark ? "🌚" : "🌞"}</button>
+        <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+          <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--text)", fontWeight: 800, fontSize: "0.75rem", letterSpacing: "2px", cursor: "pointer", fontFamily: "Syne" }}>ARCHIVE</button>
+          <button onClick={() => setDark(!dark)} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer" }}>{dark ? "🌚" : "🌞"}</button>
         </div>
       </nav>
 
-      <div style={{ paddingTop: "100px", paddingBottom: "60px" }}>
+      <div style={{ paddingTop: "120px", paddingBottom: "100px" }}>
         
+        {/* HERO */}
         {page === "home" && (
           <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "15vh 20px", textAlign: "center" }}>
-            <h1 className="spring-up" style={{ fontSize: "clamp(2.5rem, 10vw, 6rem)", fontFamily: "Syne", fontWeight: 800, lineHeight: 0.9, marginBottom: "30px" }}>
-              Archive <br/><span style={{ color: "var(--accent)" }}>Infinity</span>
+            <h1 className="parallax-item" style={{ fontSize: "clamp(3rem, 12vw, 7rem)", fontFamily: "Syne", fontWeight: 800, lineHeight: 0.85, marginBottom: "40px", transform: `translateY(${scrollY * 0.2}px)` }}>
+              Beyond <br/><span className="gradient-text">Limits</span>
             </h1>
-            <p className="spring-up" style={{ animationDelay: "0.2s", color: "var(--muted)", maxWidth: "500px", margin: "0 auto 40px", fontSize: "1.1rem" }}>
-              Secure digital assets for the next generation of creators.
+            <p style={{ color: "var(--muted)", maxWidth: "500px", margin: "0 auto 50px", fontSize: "1.2rem" }}>
+              A high-motion digital vault for creators.
             </p>
-            <button className="spring-up btn-art" style={{ width: "auto", animationDelay: "0.4s" }} onClick={() => setPage("browse")}>EXPLORE ARCHIVE</button>
+            <button className="btn-art" onClick={() => setPage("browse")}>EXPLORE</button>
           </main>
         )}
 
+        {/* BROWSE */}
         {page === "browse" && (
-          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
-            <div className="spring-up" style={{ textAlign: "center", marginBottom: "40px" }}>
-              <h2 style={{ fontFamily: "Syne", fontSize: "2.5rem", marginBottom: "20px" }}>Archive</h2>
-              <input className="input-art" placeholder="Query database..." onChange={e => setSearch(e.target.value)} />
-              <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "10px", justifyContent: "center" }}>
-                <button className={`pill-art ${activeCat === 'all' ? 'active' : ''}`} onClick={() => setActiveCat("all")}>All Units</button>
+          <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+            <div style={{ textAlign: "center", marginBottom: "60px" }}>
+              <h2 style={{ fontFamily: "Syne", fontSize: "3rem", marginBottom: "20px" }}>Library</h2>
+              <input className="input-art" style={{ maxWidth: "500px" }} placeholder="Search Archive..." onChange={e => setSearch(e.target.value)} />
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap", marginTop: "20px" }}>
+                <button className={`pill-art ${activeCat === 'all' ? 'active' : ''}`} onClick={() => setActiveCat("all")}>All</button>
                 {CATEGORIES.map(c => (
                   <button key={c.id} className={`pill-art ${activeCat === c.id ? 'active' : ''}`} onClick={() => setActiveCat(c.id)}>{c.icon} {c.label}</button>
                 ))}
               </div>
             </div>
+
             <div className="grid">
               {filtered.map((r, i) => (
-                <div key={r.id} className="glass spring-up" style={{ animationDelay: `${i * 0.05}s`, cursor: "pointer" }} onClick={() => { setDetailItem(r); setPage("detail"); }}>
-                  <div style={{ fontSize: "3rem", marginBottom: "15px", textAlign: "center" }}>{CATEGORIES.find(c => c.id === r.category)?.icon}</div>
-                  <h3 style={{ fontFamily: "Syne", fontSize: "1.1rem", marginBottom: "10px" }}>{r.title}</h3>
-                  <div style={{ display: "flex", justifyContent: "space-between", opacity: 0.6, fontSize: "0.8rem" }}>
+                <div 
+                  key={r.id} 
+                  className="glass card-hover parallax-item" 
+                  style={{ transform: `translateY(${(scrollY - (i * 100)) * 0.05}px)`, cursor: "pointer" }}
+                  onClick={() => { setDetailItem(r); setPage("detail"); }}
+                >
+                  <div style={{ fontSize: "3.5rem", textAlign: "center", marginBottom: "20px" }}>{CATEGORIES.find(c => c.id === r.category)?.icon}</div>
+                  <h3 style={{ fontFamily: "Syne", fontSize: "1.2rem", marginBottom: "10px" }}>{r.title}</h3>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", opacity: 0.6 }}>
                     <span>{r.price}</span>
                     <span>⬇️ {r.downloads || 0}</span>
                   </div>
@@ -234,17 +232,19 @@ export default function App() {
           </main>
         )}
 
+        {/* DETAIL */}
         {page === "detail" && detailItem && (
-          <main style={{ maxWidth: "700px", margin: "0 auto", padding: "0 20px" }}>
+          <main style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 24px" }}>
             <button onClick={() => setPage("browse")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 800, marginBottom: "30px", fontFamily: "Syne" }}>← RETURN</button>
-            <div className="glass spring-up">
-               <h1 style={{ fontFamily: "Syne", fontSize: "2.5rem", marginBottom: "20px", lineHeight: 1 }}>{detailItem.title}</h1>
-               <p style={{ color: "var(--muted)", lineHeight: 1.6, marginBottom: "40px" }}>{detailItem.description}</p>
-               <a href={detailItem.download_link} target="_blank" rel="noreferrer" className="btn-art" style={{ textDecoration: "none", display: "block", textAlign: "center" }}>DOWNLOAD ASSET</a>
+            <div className="glass">
+               <h1 style={{ fontFamily: "Syne", fontSize: "3rem", marginBottom: "20px", lineHeight: 1 }}>{detailItem.title}</h1>
+               <p style={{ color: "var(--muted)", lineHeight: 1.8, marginBottom: "40px", fontSize: "1.2rem" }}>{detailItem.description}</p>
+               <a href={detailItem.download_link} target="_blank" rel="noreferrer" className="btn-art" style={{ textDecoration: "none", display: "block", textAlign: "center" }}>DOWNLOAD NOW</a>
             </div>
           </main>
         )}
 
+        {/* ADMIN */}
         {page === "admin" && (
           <main style={{ maxWidth: "600px", margin: "0 auto", padding: "0 20px" }}>
             {!session ? (
@@ -259,7 +259,7 @@ export default function App() {
   );
 }
 
-// ─── ADMIN SUBSYSTEMS ────────────────────────────────────────────────────────
+// ─── ADMIN HELPERS (STABLE) ──────────────────────────────────────────────────
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -269,14 +269,14 @@ function AdminLogin({ onLogin }) {
       body: JSON.stringify({ email, password: pass })
     });
     const d = await r.json();
-    if (r.ok) onLogin(d); else alert("Invalid Signature");
+    if (r.ok) onLogin(d); else alert("Denied");
   };
   return (
-    <div className="glass spring-up" style={{ padding: "40px", textAlign: "center" }}>
-      <h3 style={{ fontFamily: "Syne", fontSize: "1.5rem", marginBottom: "30px" }}>System Access</h3>
-      <input placeholder="Admin Email" className="input-art" onChange={e => setEmail(e.target.value)} />
+    <div className="glass" style={{ padding: "40px", textAlign: "center" }}>
+      <h3 style={{ fontFamily: "Syne", marginBottom: "30px" }}>Vault Login</h3>
+      <input placeholder="Admin ID" className="input-art" onChange={e => setEmail(e.target.value)} />
       <input type="password" placeholder="Passkey" className="input-art" onChange={e => setPass(e.target.value)} />
-      <button className="btn-art" onClick={handleAuth}>INITIATE</button>
+      <button className="btn-art" style={{ width: "100%" }} onClick={handleAuth}>LOGIN</button>
     </div>
   );
 }
@@ -284,48 +284,39 @@ function AdminLogin({ onLogin }) {
 function AdminDashboard({ resources, token, onUpdate, onLogout }) {
   const [f, setF] = useState({ title: "", description: "", category: "video", download_link: "", price: "Free" });
   const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const save = async () => {
     if(!f.title || !f.download_link) return alert("Title and Link Required");
-    setLoading(true);
     const ok = await db.upsert(f, token, editId);
-    setLoading(false);
     if(ok) {
-      alert("Database Synced");
-      setF({ title: "", description: "", category: "video", download_link: "", price: "Free" });
-      setEditId(null);
-      onUpdate();
-    } else { alert("Sync Error"); }
+      alert("Synced"); setF({ title: "", description: "", category: "video", download_link: "", price: "Free" });
+      setEditId(null); onUpdate();
+    }
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "30px" }}>
-      <div className="glass spring-up">
-        <h3 style={{ fontFamily: "Syne", marginBottom: "20px" }}>{editId ? "Modify" : "Mint"} Asset</h3>
+    <div style={{ display: "grid", gap: "30px" }}>
+      <div className="glass">
+        <h3 style={{ fontFamily: "Syne", marginBottom: "20px" }}>{editId ? "Edit" : "Add"} Item</h3>
         <input placeholder="Title" value={f.title} className="input-art" onChange={e => setF({...f, title: e.target.value})} />
-        <textarea placeholder="Metadata / Description" value={f.description} className="input-art" style={{ height: "120px", resize: "none" }} onChange={e => setF({...f, description: e.target.value})} />
-        <input placeholder="Source URL" value={f.download_link} className="input-art" onChange={e => setF({...f, download_link: e.target.value})} />
+        <textarea placeholder="Description" value={f.description} className="input-art" style={{ height: "120px", resize: "none" }} onChange={e => setF({...f, description: e.target.value})} />
+        <input placeholder="Download URL" value={f.download_link} className="input-art" onChange={e => setF({...f, download_link: e.target.value})} />
         <select className="input-art" value={f.category} onChange={e => setF({...f, category: e.target.value})}>
            {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select>
-        <button className="btn-art" onClick={save} disabled={loading}>{loading ? "SYNCING..." : (editId ? "OVERWRITE" : "DEPLOY")}</button>
+        <button className="btn-art" style={{ width: "100%" }} onClick={save}>{editId ? "UPDATE" : "DEPLOY"}</button>
       </div>
-      
-      <div className="glass spring-up" style={{ animationDelay: "0.2s" }}>
-        <h3 style={{ fontFamily: "Syne", marginBottom: "20px" }}>Cloud Inventory</h3>
-        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-          {resources.map(r => (
-            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "15px 0", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ fontWeight: 700 }}>{r.title}</span>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={() => { setF(r); setEditId(r.id); }} style={{ color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>EDIT</button>
-                <button onClick={async () => { if(confirm("Purge?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: "red", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>DEL</button>
-              </div>
+      <div className="glass">
+        {resources.map(r => (
+          <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "15px 0", borderBottom: "1px solid var(--border)" }}>
+            <span style={{ fontWeight: 700 }}>{r.title}</span>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={() => { setF(r); setEditId(r.id); }} style={{ color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>Edit</button>
+              <button onClick={async () => { if(confirm("Purge?")) { await db.delete(r.id, token); onUpdate(); } }} style={{ color: "red", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}>Del</button>
             </div>
-          ))}
-        </div>
-        <button onClick={onLogout} style={{ marginTop: "30px", width: "100%", background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontWeight: 800 }}>EXIT SESSION</button>
+          </div>
+        ))}
+        <button onClick={onLogout} style={{ marginTop: "20px", width: "100%", background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontWeight: 800 }}>LOGOUT</button>
       </div>
     </div>
   );
