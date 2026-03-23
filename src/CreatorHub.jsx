@@ -325,6 +325,478 @@ const GlobalStyle = ({ dark }) => (
       color: #fff;
     }
 
+    /* ── RESPONSIVE BREAKPOINTS ──────────────────────────────────
+       xs:  0–480px      phones (portrait)
+       sm:  481–768px    phones (landscape) + small tablets
+       md:  769–1024px   tablets (iPad etc)
+       lg:  1025px+      desktop
+    ────────────────────────────────────────────────────────── */
+
+    /* Desktop default — already set by component inline styles */
+
+    /* ── Tablet (769–1024px) ── */
+    @media (max-width: 1024px) {
+      .grid-3  { grid-template-columns: repeat(2, 1fr) !important; }
+      .grid-4  { grid-template-columns: repeat(2, 1fr) !important; }
+      .detail-grid { grid-template-columns: 1fr !important; }
+      .admin-grid  { grid-template-columns: 1fr !important; }
+      .hero-title  { font-size: 3rem !important; }
+      .admin-form-sticky { position: static !important; }
+    }
+
+    /* ── Small tablet / large phone landscape (481–768px) ── */
+    @media (max-width: 768px) {
+      .hero-title  { font-size: 2.2rem !important; }
+      .grid-3      { grid-template-columns: repeat(2, 1fr) !important; }
+      .grid-4      { grid-template-columns: repeat(2, 1fr) !important; }
+      .hide-mobile { display: none !important; }
+      .nav-links   { gap: 6px !important; }
+      .nav-btn-label { display: none !important; }
+      .hero-stats  { gap: 20px !important; }
+      .section-pad { padding: 0 16px 60px !important; }
+      .detail-sidebar { margin-top: 0 !important; }
+      .footer-inner { flex-direction: column !important; gap: 28px !important; }
+      .footer-links { gap: 24px !important; }
+      .tg-section   { padding: 28px 20px !important; }
+    }
+
+    /* ── Phone portrait (0–480px) ── */
+    @media (max-width: 480px) {
+      .hero-title  { font-size: 1.75rem !important; line-height: 1.15 !important; }
+      .grid-3      { grid-template-columns: 1fr !important; }
+      .grid-4      { grid-template-columns: 1fr 1fr !important; }
+      .hero-badge  { font-size: 0.68rem !important; padding: 5px 12px !important; }
+      .hero-btns   { flex-direction: column !important; width: 100% !important; }
+      .hero-btns a,
+      .hero-btns button { width: 100% !important; text-align: center !important; }
+      .hero-stats  { gap: 16px !important; flex-wrap: wrap !important; justify-content: center !important; }
+      .browse-head { font-size: 1.6rem !important; }
+      .filter-row  { justify-content: flex-start !important; overflow-x: auto !important; flex-wrap: nowrap !important; padding-bottom: 6px !important; }
+      .filter-pill { flex-shrink: 0 !important; }
+      .sort-row    { justify-content: flex-start !important; overflow-x: auto !important; flex-wrap: nowrap !important; padding-bottom: 4px !important; }
+      .admin-grid  { grid-template-columns: 1fr !important; }
+      .detail-grid { grid-template-columns: 1fr !important; }
+      .section-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+      .cat-grid    { grid-template-columns: 1fr 1fr !important; }
+      .nav-telegram { display: none !important; }
+      .admin-form-sticky { position: static !important; }
+    }
+
+    /* ── Scrollbar hidden on mobile ── */
+    @media (max-width: 768px) {
+      .filter-row::-webkit-scrollbar,
+      .sort-row::-webkit-scrollbar { display: none; }
+      .filter-row, .sort-row { -ms-overflow-style: none; scrollbar-width: none; }
+    }
+  `}</style>
+);
+
+// ─── NAVBAR ──────────────────────────────────────────────────────────────────
+function Navbar({ dark, toggleDark, page, setPage }) {
+  const [scrolled,  setScrolled]  = useState(false);
+  const [menuOpen,  setMenuOpen]  = useState(false);
+  const clickCount = useRef(0);
+  const clickTimer = useRef(null);
+
+  const handleLogoClick = () => {
+    setMenuOpen(false);
+    clickCount.current += 1;
+    clearTimeout(clickTimer.current);
+    if (clickCount.current >= 5) {
+      clickCount.current = 0;
+      setPage("admin");
+    } else {
+      setPage("home");
+      clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 1200);
+    }
+  };
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  useEffect(() => { setMenuOpen(false); }, [page]);
+
+  const bg = (scrolled || menuOpen)
+    ? (dark ? "rgba(10,10,15,0.96)" : "rgba(244,243,238,0.96)")
+    : "transparent";
+
+  return (
+    <nav style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
+      background: bg,
+      backdropFilter: (scrolled || menuOpen) ? "blur(24px)" : "none",
+      borderBottom: (scrolled || menuOpen) ? "1px solid var(--border)" : "none",
+      transition: "background 0.3s, border 0.3s",
+    }}>
+      <style>{`
+        .nav-desktop { display: flex !important; }
+        .nav-hamburger { display: none !important; }
+        @media (max-width: 768px) {
+          .nav-desktop   { display: none !important; }
+          .nav-hamburger { display: flex !important; }
+        }
+      `}</style>
+
+      {/* ── Main bar ── */}
+      <div style={{
+        maxWidth: 1200, margin: "0 auto", padding: "0 18px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        height: 58,
+      }}>
+        {/* Logo */}
+        <button onClick={handleLogoClick} style={{
+          background: "none", border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: "9px",
+            background: "linear-gradient(135deg,#ff6b35,#ffd200)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "0.95rem", fontWeight: 900, color: "#000",
+          }}>C</div>
+          <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: "1.05rem", letterSpacing: "-0.02em" }}>
+            Creator<span className="gradient-text">Hub</span>
+          </span>
+        </button>
+
+        {/* Desktop links */}
+        <div className="nav-desktop" style={{ gap: 6, alignItems: "center" }}>
+          {[["home","Home"],["browse","Browse"]].map(([p,label]) => (
+            <button key={p} onClick={() => setPage(p)} style={{
+              background: page === p ? "var(--surface2)" : "none",
+              border: page === p ? "1px solid var(--border)" : "1px solid transparent",
+              borderRadius: 8, padding: "6px 14px",
+              fontFamily: "'Syne',sans-serif", fontWeight: 600,
+              fontSize: "0.82rem", cursor: "pointer",
+              color: page === p ? "var(--accent)" : "var(--text)",
+              transition: "all 0.2s",
+            }}>{label}</button>
+          ))}
+          <a href="#telegram" style={{
+            background: "linear-gradient(135deg,#0088cc,#00b4e6)",
+            color: "#fff", borderRadius: 8, padding: "6px 14px",
+            fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: "0.8rem",
+            textDecoration: "none", letterSpacing: "0.04em",
+          }}>📲 Telegram</a>
+          <button onClick={toggleDark} style={{
+            background: "var(--surface2)", border: "1px solid var(--border)",
+            borderRadius: 8, width: 34, height: 34,
+            cursor: "pointer", fontSize: "0.95rem",
+          }}>{dark ? "☀️" : "🌙"}</button>
+        </div>
+
+        {/* Mobile: dark toggle + hamburger */}
+        <div className="nav-hamburger" style={{ alignItems: "center", gap: 8 }}>
+          <button onClick={toggleDark} style={{
+            background: "var(--surface2)", border: "1px solid var(--border)",
+            borderRadius: 8, width: 34, height: 34,
+            cursor: "pointer", fontSize: "0.9rem",
+          }}>{dark ? "☀️" : "🌙"}</button>
+          <button onClick={() => setMenuOpen(o => !o)} style={{
+            background: "var(--surface2)", border: "1px solid var(--border)",
+            borderRadius: 8, width: 34, height: 34, cursor: "pointer",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: "4px",
+          }}>
+            {[
+              menuOpen ? "rotate(45deg) translate(4px,4px)"  : "none",
+              null,
+              menuOpen ? "rotate(-45deg) translate(4px,-4px)" : "none",
+            ].map((transform, i) => transform === null
+      id: 4, title: "Aesthetic Notion Dashboard", category: "productivity",
+    description: "Minimal Notion workspace template with linked databases, kanban boards, and daily journal blocks.",
+    tags: ["Notion", "Dashboard", "Workspace"], price: "Free",
+    trending: false, premium: false, isNew: true,
+    downloadLink: "#download-4",
+    thumbnail: null, downloads: 15300,
+  },
+  {
+    id: 5, title: "Viral Anime Edit Pack", category: "reels",
+    description: "60+ pre-cut anime clips with beat-sync markers, speed ramps, and overlay effects ready to drop in.",
+    tags: ["Anime", "Edits", "Viral"], price: "Premium",
+    trending: true, premium: true, isNew: false,
+    downloadLink: "#download-5",
+    thumbnail: null, downloads: 31200,
+  },
+  {
+    id: 6, title: "Physics Notes – Class 12", category: "study",
+    description: "Complete handwritten-style PDF notes for Class 12 Physics. Covers all NCERT chapters with solved examples.",
+    tags: ["Physics", "Notes", "PDF"], price: "Free",
+    trending: false, premium: false, isNew: true,
+    downloadLink: "#download-6",
+    thumbnail: null, downloads: 9800,
+  },
+  {
+    id: 7, title: "Morning Routine System", category: "productivity",
+    description: "Notion + PDF habit system for designing your perfect morning. Includes 30-day challenge tracker.",
+    tags: ["Habits", "Routine", "PDF"], price: "Free",
+    trending: false, premium: false, isNew: false,
+    downloadLink: "#download-7",
+    thumbnail: null, downloads: 7200,
+  },
+  {
+    id: 8, title: "Cinematic B-Roll Pack", category: "reels",
+    description: "200+ 4K b-roll clips – urban, nature, travel & lifestyle. Royalty-free, drag-and-drop ready.",
+    tags: ["B-Roll", "4K", "Royalty Free"], price: "Premium",
+    trending: true, premium: true, isNew: true,
+    downloadLink: "#download-8",
+    thumbnail: null, downloads: 18600,
+  },
+  {
+    id: 9, title: "Overlay & VHS Pack", category: "video",
+    description: "80 retro VHS, grain, and light-leak overlays. Perfect for aesthetic reels and YouTube vlogs.",
+    tags: ["Overlays", "VHS", "Retro"], price: "Free",
+    trending: false, premium: false, isNew: false,
+    downloadLink: "#download-9",
+    thumbnail: null, downloads: 5400,
+  },
+];
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const formatNum = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n;
+
+function slugify(str) {
+  return str.toLowerCase().replace(/\s+/g, "-");
+}
+
+// ─── THUMBNAIL PLACEHOLDER ───────────────────────────────────────────────────
+function Thumb({ resource, size = "full" }) {
+  const catColor = CATEGORIES.find((c) => c.id === resource.category)?.color || "#ff6b35";
+  const catIcon  = CATEGORIES.find((c) => c.id === resource.category)?.icon  || "📦";
+  return (
+    <div style={{
+      width: "100%", paddingBottom: size === "full" ? "56.25%" : "60%",
+      position: "relative", borderRadius: "12px", overflow: "hidden",
+      background: `linear-gradient(135deg, ${catColor}22 0%, ${catColor}08 100%)`,
+      border: `1px solid ${catColor}33`,
+    }}>
+      <div style={{
+        position: "absolute", inset: 0, display: "flex",
+        alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px",
+      }}>
+        <span style={{ fontSize: size === "full" ? "3.5rem" : "2.5rem" }}>{catIcon}</span>
+        <span style={{
+          fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.12em",
+          color: catColor, textTransform: "uppercase", opacity: 0.8,
+        }}>
+          {resource.category}
+        </span>
+      </div>
+      {resource.premium && (
+        <span style={{
+          position: "absolute", top: "10px", right: "10px",
+          background: "linear-gradient(135deg,#f7971e,#ffd200)",
+          color: "#000", fontSize: "0.6rem", fontWeight: 800,
+          padding: "3px 8px", borderRadius: "20px", letterSpacing: "0.1em",
+        }}>PREMIUM</span>
+      )}
+      {resource.isNew && !resource.premium && (
+        <span style={{
+          position: "absolute", top: "10px", right: "10px",
+          background: "linear-gradient(135deg,#11998e,#38ef7d)",
+          color: "#000", fontSize: "0.6rem", fontWeight: 800,
+          padding: "3px 8px", borderRadius: "20px", letterSpacing: "0.1em",
+        }}>NEW</span>
+      )}
+    </div>
+  );
+}
+
+// ─── GLOBAL CSS ──────────────────────────────────────────────────────────────
+const GlobalStyle = ({ dark }) => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg:       ${dark ? "#0a0a0f" : "#f4f3ee"};
+      --bg2:      ${dark ? "#111118" : "#ede8df"};
+      --bg3:      ${dark ? "#18181f" : "#e5dfd3"};
+      --surface:  ${dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.72)"};
+      --surface2: ${dark ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.9)"};
+      --border:   ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"};
+      --text:     ${dark ? "#f0ede8" : "#1a1814"};
+      --muted:    ${dark ? "#7a7a8a" : "#7a7670"};
+      --accent:   #ff6b35;
+      --accent2:  #4ecdc4;
+      --gold:     #ffd200;
+      --radius:   14px;
+      --shadow:   ${dark ? "0 4px 30px rgba(0,0,0,0.5)" : "0 4px 30px rgba(0,0,0,0.1)"};
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      transition: background 0.4s, color 0.4s;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+    /* Glass card */
+    .glass {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    /* Hover lift */
+    .lift {
+      transition: transform 0.25s cubic-bezier(.25,.46,.45,.94), box-shadow 0.25s;
+    }
+    .lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(255,107,53,0.18);
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.55s cubic-bezier(.25,.46,.45,.94) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+
+    @keyframes pulse-glow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.4); }
+      50%      { box-shadow: 0 0 20px 6px rgba(255,107,53,0.15); }
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #ff6b35, #ffd200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b35, #ff4500);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.875rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-transform: uppercase;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255,107,53,0.4);
+    }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 0.875rem;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* Download btn */
+    .btn-download {
+      background: linear-gradient(135deg,#11998e,#38ef7d);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-transform: uppercase;
+      display: flex; align-items: center; gap: 6px;
+      animation: pulse-glow 2.5s infinite;
+    }
+    .btn-download:hover {
+      transform: scale(1.04);
+      box-shadow: 0 8px 24px rgba(56,239,125,0.35);
+    }
+
+    /* Tag chips */
+    .tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Nav */
+    nav a { text-decoration: none; color: var(--text); }
+
+    /* Search */
+    .search-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px 10px 40px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--muted); }
+
+    /* Filter pill */
+    .filter-pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 7px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      font-family: 'Syne', sans-serif;
+      color: var(--text);
+    }
+    .filter-pill.active, .filter-pill:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
     /* Mobile responsive */
     @media (max-width: 768px) {
       .hero-title { font-size: 2.2rem !important; }
